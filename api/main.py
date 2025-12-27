@@ -66,15 +66,15 @@ async def root():
     return {"message": f"Welcome to {settings.PROJECT_NAME} API"}
 
 # Register Routers
-app.include_router(auth_router)
-app.include_router(user_router)
-app.include_router(party_router)
-app.include_router(txn_router)
-app.include_router(inventory_router)
-app.include_router(document_router)
-app.include_router(fleet_router)
-app.include_router(trip_router)
-app.include_router(dashboard_router)
+app.include_router(auth_router,prefix="/api")
+app.include_router(user_router,prefix="/api")
+app.include_router(party_router,prefix="/api")
+app.include_router(txn_router,prefix="/api")
+app.include_router(inventory_router,prefix="/api")
+app.include_router(document_router,prefix="/api")
+app.include_router(fleet_router,prefix="/api")
+app.include_router(trip_router,prefix="/api")
+app.include_router(dashboard_router,prefix="/api")
 
 if __name__ == "__main__":
     import uvicorn
