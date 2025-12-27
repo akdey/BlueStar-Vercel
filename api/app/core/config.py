@@ -25,12 +25,10 @@ class Settings(BaseSettings):
     CORS_EXPOSE_HEADERS: List[str] = ["Authorization"]
     
     PUBLIC_ROUTES: list[str] = [
-        "/docs", 
-        "/redoc", 
-        "/openapi.json", 
-        "/auth/login",
-        "/users/change-password",
-        "/users/register"
+        "api/docs", 
+        "api/redoc", 
+        "api/openapi.json", 
+        "api/auth/login"
     ]
     
     ENV: str = "development"
