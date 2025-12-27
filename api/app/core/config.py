@@ -28,7 +28,8 @@ class Settings(BaseSettings):
         "/api/docs", 
         "/api/redoc", 
         "/api/openapi.json", 
-        "/api/auth/login"
+        "/api/auth/login",
+        "/api/users/change-password"
     ]
     
     ENV: str = "development"
