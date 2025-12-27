@@ -7,6 +7,8 @@ import Logo from '../UI/Logo';
 import Aurora from '../UI/Aurora';
 import Magnet from '../UI/Magnet';
 
+import Button from '../UI/Button';
+
 gsap.registerPlugin(ScrollTrigger);
 
 export default function Hero() {
@@ -51,25 +53,28 @@ export default function Hero() {
                     transition={{ duration: 0.8, delay: 1.2 }}
                     className="flex flex-col md:flex-row items-center justify-center gap-6 mt-16"
                 >
-                    <Magnet>
-                        <a href="#contact" className="inline-block">
-                            <button
-                                className="bg-primary dark:bg-accent text-white px-10 py-5 rounded-2xl font-heading font-bold text-lg shadow-2xl shadow-primary/20 dark:shadow-accent/40 hover:scale-105 transition-all flex items-center gap-3 group"
+                    <a href="#contact" className="inline-block group focus:outline-none focus:ring-2 focus:ring-primary rounded-2xl">
+                        <Magnet padding={0}>
+                            <Button
+                                rounded="2xl"
+                                className="px-10 py-5 text-lg"
                             >
                                 Get a Quote
                                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                            </button>
-                        </a>
-                    </Magnet>
+                            </Button>
+                        </Magnet>
+                    </a>
 
-                    <Magnet>
-                        <a href="#story" className="text-primary dark:text-slate-300 font-bold hover:text-accent dark:hover:text-white flex items-center gap-2 group transition-all text-lg px-8 py-5">
-                            Our Business Commitment
-                            <motion.span animate={{ x: [0, 5, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>
-                                →
-                            </motion.span>
-                        </a>
-                    </Magnet>
+                    <a href="#story" className="inline-block group focus:outline-none focus:ring-2 focus:ring-primary rounded-2xl">
+                        <Magnet padding={0}>
+                            <div className="text-primary dark:text-slate-300 font-bold hover:text-accent dark:hover:text-white flex items-center gap-2 transition-all text-lg px-8 py-5 cursor-pointer">
+                                Our Business Commitment
+                                <motion.span animate={{ x: [0, 5, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>
+                                    →
+                                </motion.span>
+                            </div>
+                        </Magnet>
+                    </a>
                 </motion.div>
             </div>
 

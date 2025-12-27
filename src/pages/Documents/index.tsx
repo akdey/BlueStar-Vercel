@@ -6,6 +6,7 @@ import DocumentForm from './DocumentForm';
 import DocumentDetails from './DocumentDetails';
 import Badge from '../../components/Shared/Badge';
 import { useGetDocumentsQuery } from '../../features/api/apiSlice';
+import Button from '../../components/UI/Button';
 import {
     FileText,
     Calendar,
@@ -122,33 +123,36 @@ const Documents = () => {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <PageHeader title="Document Registry" />
-                <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                <Button
                     onClick={handleCreate}
-                    className="group relative inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-primary to-secondary text-white text-[10px] font-bold uppercase tracking-[0.2em] rounded-xl shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 font-display"
+                    rounded="xl"
+                    className="px-6 py-2.5"
                 >
-                    <PlusCircle size={16} className="transition-transform group-hover:rotate-90" />
+                    <PlusCircle size={16} />
                     <span>Create Document</span>
-                </motion.button>
+                </Button>
             </div>
 
             {/* Premium Document Type Filter */}
             <div className="flex flex-wrap items-center gap-2 bg-white dark:bg-slate-900 border border-theme p-1.5 rounded-2xl shadow-sm w-fit">
-                <button
+                <Button
                     onClick={() => setDocTypeFilter('')}
-                    className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${docTypeFilter === '' ? 'bg-primary text-white shadow-md' : 'text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'}`}
+                    variant={docTypeFilter === '' ? 'primary' : 'glass'}
+                    rounded="xl"
+                    className={`px-4 py-2 text-[10px] shadow-none h-auto border-none ${docTypeFilter !== '' ? 'dark:text-gray-400 text-gray-500' : ''}`}
                 >
                     All Streams
-                </button>
+                </Button>
                 {types.map(t => (
-                    <button
+                    <Button
                         key={t}
                         onClick={() => setDocTypeFilter(t)}
-                        className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${docTypeFilter === t ? 'bg-primary text-white shadow-md' : 'text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'}`}
+                        variant={docTypeFilter === t ? 'primary' : 'glass'}
+                        rounded="xl"
+                        className={`px-4 py-2 text-[10px] shadow-none h-auto border-none ${docTypeFilter !== t ? 'dark:text-gray-400 text-gray-500' : ''}`}
                     >
                         {t}
-                    </button>
+                    </Button>
                 ))}
             </div>
 

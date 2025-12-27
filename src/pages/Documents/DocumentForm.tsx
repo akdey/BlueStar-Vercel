@@ -3,6 +3,7 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Input, Select } from '../../components/Shared/Form';
+import Button from '../../components/UI/Button';
 import {
     Loader2,
     FileText,
@@ -73,6 +74,9 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ onSuccess }) => {
 
     const items = watch('items');
 
+    // Helper for rounding to 2 decimal places
+    const round = (num: number) => Math.round((num + Number.EPSILON) * 100) / 100;
+
     // Calculate line total and grand total
     useEffect(() => {
         const subscription = watch((value, { name, type }) => {
@@ -84,8 +88,14 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ onSuccess }) => {
                     if (item) {
                         const qty = Number(item.quantity) || 0;
                         const rate = Number(item.rate) || 0;
-                        const amount = qty * rate;
-                        setValue(`items.${index}.amount` as any, amount);
+                        const amount = round(qty * rate);
+
+                        // Only update if value is different to avoid infinite loops (though setValue check handles it usually)
+                        // But we must check if current amount is different.
+                        const currentAmount = item.amount;
+                        if (currentAmount !== amount) {
+                            setValue(`items.${index}.amount` as any, amount);
+                        }
                     }
                 }
             }
@@ -93,7 +103,23 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ onSuccess }) => {
         return () => subscription.unsubscribe();
     }, [watch, setValue]);
 
-    const grandTotal = items?.reduce((sum, item) => sum + (Number(item?.amount) || 0), 0) || 0;
+    const calculateTotals = () => {
+        const currentItems = items || [];
+        const subTotal = currentItems.reduce((sum, item) => sum + (Number(item?.amount) || 0), 0);
+        const totalTax = currentItems.reduce((sum, item) => {
+            const amt = Number(item?.amount) || 0;
+            const taxRate = Number(item?.tax_rate) || 0;
+            return sum + round((amt * taxRate) / 100);
+        }, 0);
+
+        return {
+            subTotal: round(subTotal),
+            totalTax: round(totalTax),
+            grandTotal: round(subTotal + totalTax)
+        };
+    };
+
+    const { subTotal, totalTax, grandTotal } = calculateTotals();
 
     const onSubmit = async (data: DocumentFormData) => {
         try {
@@ -189,13 +215,15 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ onSuccess }) => {
                         <Package size={14} className="text-primary" />
                         <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Line Items</h3>
                     </div>
-                    <button
+                    <Button
                         type="button"
+                        variant="glass"
                         onClick={() => append({ item_id: 0, quantity: 1, rate: 0, tax_rate: 0, amount: 0 })}
-                        className="flex items-center gap-1 text-[10px] font-black text-primary hover:text-primary/80 transition-colors uppercase tracking-widest"
+                        rounded="xl"
+                        className="flex items-center gap-1.5 text-[10px] shadow-none h-auto border-none text-primary hover:text-secondary py-1.5 px-3"
                     >
                         <Plus size={14} /> Add Row
-                    </button>
+                    </Button>
                 </div>
 
                 <div className="space-y-3">
@@ -285,6 +313,18 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ onSuccess }) => {
                     </div>
 
                     <div className="flex flex-col items-end shrink-0">
+                        {/* Summary Breakdown */}
+                        <div className="space-y-1 mb-4 text-right">
+                            <div className="text-xs font-medium text-gray-400">
+                                <span>Subtotal: </span>
+                                <span className="text-white ml-2">₹{subTotal.toLocaleString()}</span>
+                            </div>
+                            <div className="text-xs font-medium text-gray-400">
+                                <span>Total Tax: </span>
+                                <span className="text-emerald-400 ml-2">+ ₹{totalTax.toLocaleString()}</span>
+                            </div>
+                        </div>
+
                         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-2">Grand Total Amount</p>
                         <div className="flex items-baseline gap-2">
                             <span className="text-xl font-bold text-primary">₹</span>
@@ -298,12 +338,11 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ onSuccess }) => {
             </section>
 
             <div className="pt-6">
-                <motion.button
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
+                <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full flex items-center justify-center py-5 px-4 bg-gradient-to-r from-primary to-secondary rounded-[1.5rem] shadow-xl shadow-primary/20 text-xs font-black text-white uppercase tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    rounded="xl"
+                    className="w-full py-5 text-xs tracking-[0.3em]"
                 >
                     {isSubmitting ? (
                         <Loader2 className="animate-spin h-6 w-6" />
@@ -313,7 +352,7 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ onSuccess }) => {
                             <ArrowRight size={18} />
                         </div>
                     )}
-                </motion.button>
+                </Button>
             </div>
         </form>
     );

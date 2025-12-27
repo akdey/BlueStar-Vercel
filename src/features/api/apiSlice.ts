@@ -1,8 +1,9 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { setCredentials } from '../auth/authSlice';
+import { setCredentials, logout as logoutAction } from '../auth/authSlice';
+import { toast } from 'react-toastify';
 
 const baseQuery = fetchBaseQuery({
-    baseUrl: '/api',
+    baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
     prepareHeaders: (headers, { getState }) => {
         const token = (getState() as { auth: { token: string | null } }).auth.token;
         const persistedToken = token || sessionStorage.getItem('access_token');
@@ -15,6 +16,14 @@ const baseQuery = fetchBaseQuery({
 
 const baseQueryWithReauth: typeof baseQuery = async (args, api, extraOptions) => {
     const result = await baseQuery(args, api, extraOptions);
+
+    if (result.error && result.error.status === 401) {
+        // Session expired - auto logout
+        api.dispatch(logoutAction());
+        toast.error('Session expired. Please login again.', {
+            toastId: 'session-expired', // Prevent duplicate toasts
+        });
+    }
 
     // Check for token in headers (Refreshed token pattern)
     // Adjust header name 'x-access-token' or 'authorization' based on explicit backend behavior.
@@ -330,6 +339,15 @@ export const apiSlice = createApi({
             }),
             invalidatesTags: ['Transaction', 'Party'],
         }),
+
+        // Chat
+        sendChatMessage: builder.mutation({
+            query: (chatData) => ({
+                url: '/chat/',
+                method: 'POST',
+                body: chatData,
+            }),
+        }),
     }),
 });
 
@@ -372,4 +390,5 @@ export const {
     useGetTransactionsQuery,
     useGetTransactionsByPartyQuery,
     useCreateTransactionMutation,
+    useSendChatMessageMutation,
 } = apiSlice;

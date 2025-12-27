@@ -8,9 +8,9 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: "var(--primary)",
-        secondary: "var(--secondary)",
-        accent: "var(--accent)",
+        primary: "rgb(var(--primary) / <alpha-value>)",
+        secondary: "rgb(var(--secondary) / <alpha-value>)",
+        accent: "rgb(var(--accent) / <alpha-value>)",
         'brand-gray': "var(--bg-dark-accent)",
       },
       fontFamily: {
@@ -18,6 +18,7 @@ export default {
         heading: ['Montserrat', 'sans-serif'],
       },
       backgroundImage: {
+        'gradient-premium': 'linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%)',
         'hero-gradient': 'linear-gradient(135deg, #F7F9FC 0%, #E8F0FA 100%)',
         'hero-gradient-dark': 'linear-gradient(135deg, #1B262C 0%, #0F4C75 100%)',
       }

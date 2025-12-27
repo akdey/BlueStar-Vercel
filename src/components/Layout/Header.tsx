@@ -70,7 +70,7 @@ export default function Header() {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => navigate('/login')}
-                        className="flex items-center gap-2 px-5 py-2 rounded-full border-2 border-primary text-primary dark:border-primary dark:text-primary font-bold hover:bg-primary hover:text-white transition-all text-sm"
+                        className="flex items-center gap-2 px-6 py-2.5 rounded-full border-2 border-primary text-primary font-bold hover:bg-gradient-to-r hover:from-primary hover:to-secondary hover:text-white transition-all text-sm shadow-lg shadow-primary/10"
                     >
                         <LogIn size={16} />
                         Login
@@ -126,7 +126,7 @@ export default function Header() {
                                         navigate('/login');
                                         setIsOpen(false);
                                     }}
-                                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-primary text-primary font-bold"
+                                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-primary text-primary dark:text-primary font-bold hover:bg-primary hover:text-white dark:hover:text-white transition-all transition-all"
                                 >
                                     <LogIn size={18} /> Login
                                 </button>

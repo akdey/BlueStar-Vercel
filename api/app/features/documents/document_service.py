@@ -28,14 +28,18 @@ class DocumentService:
         calculated_tax = 0.0
         
         for item in doc_in.items:
-            item_amount = item.quantity * item.rate
+            # Round line item amount to 2 decimals (Standard Currency format)
+            item_amount = round(item.quantity * item.rate, 2)
             item.amount = item_amount
             calculated_total += item_amount
-            calculated_tax += (item_amount * item.tax_rate / 100.0)
             
-        doc_in.total_amount = calculated_total
-        doc_in.tax_amount = calculated_tax
-        doc_in.grand_total = calculated_total + calculated_tax
+            # Round tax amount per item to 2 decimals
+            item_tax = round(item_amount * item.tax_rate / 100.0, 2)
+            calculated_tax += item_tax
+            
+        doc_in.total_amount = round(calculated_total, 2)
+        doc_in.tax_amount = round(calculated_tax, 2)
+        doc_in.grand_total = round(calculated_total + calculated_tax, 2)
         
         # 1. Save Document
         doc = await DocumentRepository.create(doc_in)
@@ -87,11 +91,11 @@ class DocumentService:
         if old_doc.status == DocumentStatus.DRAFT and updated_doc.status != DocumentStatus.DRAFT:
             # IMPORTANT: Re-calculate totals one last time before impact if they are 0
             if updated_doc.grand_total == 0:
-                calc_total = sum(i.quantity * i.rate for i in updated_doc.items)
-                calc_tax = sum((i.quantity * i.rate * i.tax_rate / 100.0) for i in updated_doc.items)
-                updated_doc.total_amount = calc_total
-                updated_doc.tax_amount = calc_tax
-                updated_doc.grand_total = calc_total + calc_tax
+                calc_total = sum(round(i.quantity * i.rate, 2) for i in updated_doc.items)
+                calc_tax = sum(round((round(i.quantity * i.rate, 2) * i.tax_rate / 100.0), 2) for i in updated_doc.items)
+                updated_doc.total_amount = round(calc_total, 2)
+                updated_doc.tax_amount = round(calc_tax, 2)
+                updated_doc.grand_total = round(calc_total + calc_tax, 2)
                 # We should save these back!
                 async with SessionLocal() as db:
                     await db.execute(

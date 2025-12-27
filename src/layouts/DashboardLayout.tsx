@@ -23,8 +23,16 @@ import {
     Sun,
     Moon,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    User as UserIcon,
+    Lock,
+    Shield,
+    ChevronDown,
+    Loader2,
+    MessageSquare
 } from 'lucide-react';
+import { useChangePasswordMutation } from '../features/api/apiSlice';
+import { toast } from 'react-toastify';
 
 const DashboardLayout = () => {
     const user = useAppSelector((state) => state.auth.user);
@@ -49,6 +57,7 @@ const DashboardLayout = () => {
         { name: 'Documents', href: '/documents', icon: FileText },
         { name: 'Trips', href: '/trips', icon: MapPin },
         { name: 'Transactions', href: '/transactions', icon: CircleDollarSign },
+        { name: 'Enterprise Chat', href: '/chat', icon: MessageSquare },
     ];
 
     const filteredNavigation = navigation.filter(item =>
@@ -155,65 +164,24 @@ const DashboardLayout = () => {
                     })}
                 </nav>
 
-                {/* User Profile */}
+                {/* Sidebar Bottom - Logout Only */}
                 <div className="p-4 border-t border-gray-200 dark:border-slate-800 flex-shrink-0">
-                    {!isSidebarCollapsed ? (
-                        <div className="space-y-2">
-                            <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50 dark:bg-slate-800/50">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-medium text-sm flex-shrink-0">
-                                    {user?.username?.charAt(0).toUpperCase()}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                                        {user?.username}
-                                    </p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate capitalize">
-                                        {user?.role}
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="flex gap-2">
-                                <motion.div className="flex-1" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                                    <Link
-                                        to="/account/settings"
-                                        className="w-full flex items-center justify-center gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 transition-all shadow-sm"
-                                    >
-                                        <Users size={12} />
-                                        <span>Account</span>
-                                    </Link>
-                                </motion.div>
-                                <motion.button
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    onClick={logout}
-                                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-900/30 transition-all shadow-sm"
-                                >
-                                    <LogOut size={12} />
-                                    <span>Logout</span>
-                                </motion.button>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="flex flex-col items-center gap-2">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-medium text-sm">
-                                {user?.username?.charAt(0).toUpperCase()}
-                            </div>
-                            <Link
-                                to="/account/settings"
-                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-500 dark:text-gray-400 transition-colors"
-                                title="Account Settings"
-                            >
-                                <Users size={18} />
-                            </Link>
-                            <button
-                                onClick={logout}
-                                className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                                title="Logout"
-                            >
-                                <LogOut size={18} />
-                            </button>
-                        </div>
-                    )}
+                    <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={logout}
+                        className={`
+                            flex items-center gap-3 w-full p-2.5 rounded-xl
+                            text-red-600 dark:text-red-400 font-bold 
+                            bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20 
+                            transition-all border border-red-100/50 dark:border-red-900/20
+                            ${isSidebarCollapsed ? 'justify-center' : ''}
+                        `}
+                        title="Logout"
+                    >
+                        <LogOut size={20} className="flex-shrink-0" />
+                        {!isSidebarCollapsed && <span className="text-[10px] uppercase tracking-widest font-black">Disconnect</span>}
+                    </motion.button>
                 </div>
             </motion.aside>
 
@@ -255,7 +223,7 @@ const DashboardLayout = () => {
                         />
                     </div>
 
-                    <div className="flex items-center gap-2 sm:gap-4">
+                    <div className="flex items-center gap-2 sm:gap-4 relative">
                         {/* Theme Toggle */}
                         <button
                             onClick={toggleTheme}
@@ -265,10 +233,13 @@ const DashboardLayout = () => {
                             {theme === 'dark' ? <Sun size={18} className="sm:w-5 sm:h-5" /> : <Moon size={18} className="sm:w-5 sm:h-5" />}
                         </button>
 
-                        <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-500 dark:text-gray-400 relative">
-                            <Bell size={18} className="sm:w-5 sm:h-5" />
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white dark:border-slate-900"></span>
-                        </button>
+                        <div className="h-8 w-px bg-gray-200 dark:bg-slate-800 mx-1 hidden sm:block" />
+
+                        <NotificationDropdown />
+
+                        <div className="h-8 w-px bg-gray-200 dark:bg-slate-800 mx-1 hidden sm:block" />
+
+                        <UserAvatarMenu user={user} logout={logout} />
                     </div>
                 </header>
 
@@ -279,11 +250,253 @@ const DashboardLayout = () => {
                     </div>
 
                     {/* Dashboard Footer/Copyright */}
-                    <div className="max-w-7xl mx-auto w-full mt-12 pt-8 border-t border-gray-200/50 dark:border-slate-800/50">
+                    <div id="dashboard-footer" className="max-w-7xl mx-auto w-full mt-12 pt-8 border-t border-gray-200/50 dark:border-slate-800/50">
                         <Copyright className="flex flex-col md:flex-row md:items-center md:justify-between !text-[10px] !text-gray-400 dark:text-gray-600 font-bold uppercase tracking-[0.2em] gap-4 text-center md:text-left" />
                     </div>
                 </main>
             </div>
+        </div>
+    );
+};
+
+const UserAvatarMenu = ({ user, logout }: any) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+
+    return (
+        <>
+            <div className="relative">
+                <button
+                    onClick={() => setIsOpen(!isOpen)}
+                    className="flex items-center gap-3 p-1.5 rounded-2xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-all border border-transparent hover:border-gray-200 dark:hover:border-slate-700"
+                >
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-black text-sm shadow-lg shadow-primary/20">
+                        {user?.username?.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="hidden sm:block text-left mr-2 min-w-[80px]">
+                        <p className="text-sm font-black text-gray-900 dark:text-gray-100 leading-tight">{user?.full_name || 'System User'}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter truncate max-w-[50px]">{user?.username}</p>
+                            <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-slate-700" />
+                            <p className="text-[9px] font-black text-primary dark:text-accent uppercase tracking-tighter capitalize">{user?.role}</p>
+                        </div>
+                    </div>
+                    <ChevronDown size={14} className={`text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                <AnimatePresence>
+                    {isOpen && (
+                        <>
+                            <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+                            <motion.div
+                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                className="absolute right-0 mt-3 w-64 bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-gray-100 dark:border-slate-800 z-50 overflow-hidden"
+                            >
+                                <div className="p-6 border-b border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/30">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-black text-lg shadow-xl shadow-primary/20">
+                                            {user?.username?.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-black text-gray-900 dark:text-white truncate">{user?.full_name || user?.username}</p>
+                                            <p className="text-xs font-bold text-gray-500 dark:text-gray-400 truncate tracking-tight">{user?.username}</p>
+                                        </div>
+                                    </div>
+                                    <div className="px-3 py-1 bg-primary/10 rounded-full w-fit">
+                                        <p className="text-[10px] font-black text-primary uppercase tracking-widest">{user?.role} ACCOUNT</p>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => {
+                                        setIsPasswordModalOpen(true);
+                                        setIsOpen(false);
+                                    }}
+                                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-300 transition-all group"
+                                >
+                                    <div className="p-2 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400 group-hover:text-primary transition-colors">
+                                        <Lock size={16} />
+                                    </div>
+                                    <div className="text-left">
+                                        <p className="text-[10px] font-black uppercase tracking-widest">Security & Crypto</p>
+                                        <p className="text-[9px] text-gray-400 font-bold">Rotate system keys</p>
+                                    </div>
+                                </button>
+
+                                <button
+                                    onClick={logout}
+                                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gradient-to-r hover:from-red-500 hover:to-red-600 hover:text-white dark:hover:from-red-900/40 dark:hover:to-red-800/40 text-red-600 transition-all group mt-2"
+                                >
+                                    <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/20 text-red-500 group-hover:bg-white/20 group-hover:text-white transition-colors">
+                                        <LogOut size={16} />
+                                    </div>
+                                    <span className="text-xs font-black uppercase tracking-widest text-[10px]">Disconnect</span>
+                                </button>
+                            </motion.div>
+                        </>
+                    )}
+                </AnimatePresence>
+            </div>
+
+            <ChangePasswordModal
+                isOpen={isPasswordModalOpen}
+                onClose={() => setIsPasswordModalOpen(false)}
+            />
+        </>
+    );
+};
+
+const ChangePasswordModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+    const [oldPassword, setOldPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [changePassword, { isLoading }] = useChangePasswordMutation();
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (newPassword !== confirmPassword) {
+            toast.error("New passwords don't match");
+            return;
+        }
+
+        try {
+            await changePassword({ old_password: oldPassword, new_password: newPassword }).unwrap();
+            toast.success("Security keys updated successfully");
+            onClose();
+        } catch (error: any) {
+            toast.error(error.data?.detail || "System rejected key update");
+        }
+    };
+
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={onClose}
+                        className="absolute inset-0 bg-black/60 backdrop-blur-md"
+                    />
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                        className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-white/20 overflow-hidden"
+                    >
+                        <div className="p-8 pb-0">
+                            <div className="p-3 rounded-2xl bg-primary/10 text-primary w-fit mb-4">
+                                <Lock size={24} />
+                            </div>
+                            <h3 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Security Protocol</h3>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Rotate your system access keys</p>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Current Key</label>
+                                    <input
+                                        type="password"
+                                        required
+                                        value={oldPassword}
+                                        onChange={(e) => setOldPassword(e.target.value)}
+                                        className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl px-5 py-4 text-sm focus:ring-2 focus:ring-primary outline-none transition-all dark:text-white"
+                                        placeholder="Enter current password"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">New Access Key</label>
+                                    <input
+                                        type="password"
+                                        required
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl px-5 py-4 text-sm focus:ring-2 focus:ring-primary outline-none transition-all dark:text-white"
+                                        placeholder="Enter new password"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Verify New Key</label>
+                                    <input
+                                        type="password"
+                                        required
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl px-5 py-4 text-sm focus:ring-2 focus:ring-primary outline-none transition-all dark:text-white"
+                                        placeholder="Confirm new password"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="flex-1 px-6 py-4 rounded-2xl border border-gray-100 dark:border-slate-700 text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all"
+                                >
+                                    Abort
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isLoading}
+                                    className="flex-1 bg-primary dark:bg-accent text-white px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50 transition-all"
+                                >
+                                    {isLoading ? <Loader2 size={14} className="animate-spin" /> : <Shield size={14} />}
+                                    Apply Changes
+                                </button>
+                            </div>
+                        </form>
+                    </motion.div>
+                </div>
+            )}
+        </AnimatePresence>
+    );
+};
+
+const NotificationDropdown = () => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    return (
+        <div className="relative">
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-500 dark:text-gray-400 relative transition-colors"
+            >
+                <Bell size={18} className="sm:w-5 sm:h-5" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white dark:border-slate-900 animate-pulse"></span>
+            </button>
+
+            <AnimatePresence>
+                {isOpen && (
+                    <>
+                        <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+                        <motion.div
+                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                            className="absolute right-0 mt-3 w-80 bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-gray-100 dark:border-slate-800 z-50 overflow-hidden"
+                        >
+                            <div className="p-6 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
+                                <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-tight">Signals</h3>
+                                <span className="text-[10px] bg-red-100 dark:bg-red-900/30 text-red-600 px-2 py-1 rounded-full font-black">0 NEW</span>
+                            </div>
+                            <div className="p-8 text-center flex flex-col items-center gap-4">
+                                <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/50 text-gray-300 dark:text-gray-600">
+                                    <Bell size={32} />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-bold text-gray-900 dark:text-gray-100 italic">Clear Communication</p>
+                                    <p className="text-xs text-gray-400 mt-1">No new operational updates at this time.</p>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

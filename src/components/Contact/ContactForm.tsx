@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { Send, Phone, Mail, MapPin } from 'lucide-react';
 import SectionWrapper from '../UI/SectionWrapper';
 import SpotlightCard from '../UI/SpotlightCard';
+import Button from '../UI/Button';
 
 const schema = yup.object().shape({
     name: yup.string().required('Name is required'),
@@ -104,10 +105,11 @@ export default function ContactForm() {
                                 {errors.message && <p className="text-xs text-red-500 font-bold">{errors.message.message}</p>}
                             </div>
 
-                            <button
+                            <Button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="w-full py-5 bg-primary dark:bg-sky-500 text-white rounded-[1.5rem] font-heading font-black text-lg shadow-2xl shadow-primary/20 dark:shadow-sky-500/20 flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-70"
+                                rounded="2xl"
+                                className="w-full py-5 text-lg"
                             >
                                 {isSubmitting ? (
                                     <motion.div
@@ -120,7 +122,7 @@ export default function ContactForm() {
                                         Get Your Quote <Send size={20} />
                                     </>
                                 )}
-                            </button>
+                            </Button>
                         </form>
                     </SpotlightCard>
                 </div>

@@ -17,8 +17,15 @@ import Fleet from './pages/Fleet';
 import Documents from './pages/Documents';
 import Trips from './pages/Trips';
 import Transactions from './pages/Transactions';
+import EnterpriseChat from './pages/EnterpriseChat';
+
+import { useEffect } from 'react';
 
 function AppContent() {
+  useEffect(() => {
+    document.title = import.meta.env.VITE_APP_TITLE || 'BLUE STAR | Trading & Co.';
+  }, []);
+
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
@@ -45,6 +52,7 @@ function AppContent() {
             <Route path="/documents" element={<Documents />} />
             <Route path="/trips" element={<Trips />} />
             <Route path="/transactions" element={<Transactions />} />
+            <Route path="/chat" element={<EnterpriseChat />} />
           </Route>
         </Route>
 

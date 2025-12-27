@@ -17,6 +17,7 @@ import {
     Loader2
 } from 'lucide-react';
 import Badge from '../../components/Shared/Badge';
+import Button from '../../components/UI/Button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAddTripExpenseMutation } from '../../features/api/apiSlice';
 import { toast } from 'react-toastify';
@@ -164,12 +165,14 @@ const TripDetails: React.FC<TripDetailsProps> = ({ trip, refetch }) => {
                         <Receipt size={14} className="text-primary" />
                         <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Operational Burn (Expenses)</h3>
                     </div>
-                    <button
+                    <Button
+                        variant="glass"
                         onClick={() => setIsAddingExpense(true)}
-                        className="flex items-center gap-1.5 text-[10px] font-black text-primary hover:text-secondary transition-all uppercase tracking-widest"
+                        rounded="xl"
+                        className="flex items-center gap-1.5 text-[10px] shadow-none h-auto border-none text-primary hover:text-secondary py-1.5 px-3"
                     >
                         <PlusCircle size={14} /> Log Burn
-                    </button>
+                    </Button>
                 </div>
 
                 <AnimatePresence>
@@ -234,20 +237,23 @@ const TripDetails: React.FC<TripDetailsProps> = ({ trip, refetch }) => {
                                 />
                             </div>
                             <div className="flex gap-2 pt-2">
-                                <button
+                                <Button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="flex-1 bg-primary text-white text-[10px] font-black uppercase tracking-widest py-3 rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
+                                    rounded="xl"
+                                    className="flex-1 text-[10px] py-3 h-auto"
                                 >
                                     {isSubmitting ? <Loader2 size={14} className="animate-spin" /> : 'Commit Expense'}
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                     type="button"
+                                    variant="glass"
                                     onClick={() => setIsAddingExpense(false)}
-                                    className="px-6 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-600 transition-all"
+                                    rounded="xl"
+                                    className="px-6 text-[10px] h-auto border-none dark:text-gray-400 text-gray-500"
                                 >
-                                    Abandond
-                                </button>
+                                    Abandon
+                                </Button>
                             </div>
                         </motion.form>
                     )}

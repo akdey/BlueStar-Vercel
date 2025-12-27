@@ -3,6 +3,7 @@ import {
     useGetVehiclesQuery,
     useGetDriversQuery
 } from '../../features/api/apiSlice';
+import Button from '../../components/UI/Button';
 import PageHeader from '../../components/Shared/PageHeader';
 import DataTable from '../../components/Shared/DataTable';
 import SlideOver from '../../components/Shared/SlideOver';
@@ -186,15 +187,14 @@ const Fleet = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <PageHeader title="Fleet Management" />
                 <div className="flex items-center gap-3">
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                    <Button
                         onClick={handleCreate}
-                        className="group relative inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-primary to-secondary text-white text-[10px] font-bold uppercase tracking-[0.2em] rounded-xl shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 font-display"
+                        rounded="xl"
+                        className="px-6 py-2.5"
                     >
-                        <PlusCircle size={16} className="transition-transform group-hover:rotate-90" />
+                        <PlusCircle size={16} />
                         <span>Register {activeTab === 'vehicles' ? 'New Vehicle' : 'New Driver'}</span>
-                    </motion.button>
+                    </Button>
                 </div>
             </div>
 

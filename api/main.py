@@ -18,6 +18,7 @@ from app.features.documents.document_routes import router as document_router
 from app.features.fleet.fleet_routes import router as fleet_router
 from app.features.trips.trip_routes import router as trip_router
 from app.features.dashboard.dashboard_routes import router as dashboard_router
+from app.features.chat.chat_routes import router as chat_router
 from app.core.exceptions import (
     http_exception_handler,
     validation_exception_handler,
@@ -66,16 +67,17 @@ async def root():
     return {"message": f"Welcome to {settings.PROJECT_NAME} API"}
 
 # Register Routers
-app.include_router(auth_router,prefix="/api")
-app.include_router(user_router,prefix="/api")
-app.include_router(party_router,prefix="/api")
-app.include_router(txn_router,prefix="/api")
-app.include_router(inventory_router,prefix="/api")
-app.include_router(document_router,prefix="/api")
-app.include_router(fleet_router,prefix="/api")
-app.include_router(trip_router,prefix="/api")
-app.include_router(dashboard_router,prefix="/api")
+app.include_router(auth_router, prefix="/api")
+app.include_router(user_router, prefix="/api")
+app.include_router(party_router, prefix="/api")
+app.include_router(txn_router, prefix="/api")
+app.include_router(inventory_router, prefix="/api")
+app.include_router(document_router, prefix="/api")
+app.include_router(fleet_router, prefix="/api")
+app.include_router(trip_router, prefix="/api")
+app.include_router(dashboard_router, prefix="/api")
+app.include_router(chat_router, prefix="/api")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, reload_dirs=["."], reload_excludes=["logs", "logs/*", "*.log", "*.db", "trading_system.db", "*.db-journal", "*.db-wal", ".git", "__pycache__"])
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False, reload_dirs=["."], reload_excludes=["logs", "logs/*", "*.log", "*.db", "trading_system.db", "*.db-journal", "*.db-wal", ".git", "__pycache__"])

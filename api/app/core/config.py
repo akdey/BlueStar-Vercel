@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     MAX_LOGIN_ATTEMPTS: int = 3
     LOGIN_LOCKOUT_MINUTES: int = 15
     DEFAULT_PASSWORD: str = "ChangeMe@123"
+    GOOGLE_API_KEY: str = os.getenv("GOOGLE_API_KEY", "")
     
     # CORS Settings
     CORS_ORIGINS: List[str] = [
@@ -25,11 +26,12 @@ class Settings(BaseSettings):
     CORS_EXPOSE_HEADERS: List[str] = ["Authorization"]
     
     PUBLIC_ROUTES: list[str] = [
-        "/api/docs", 
-        "/api/redoc", 
-        "/api/openapi.json", 
+        "/docs", 
+        "/redoc", 
+        "/openapi.json", 
         "/api/auth/login",
-        "/api/users/change-password"
+        "/api/users/change-password",
+        "/api/users/register"
     ]
     
     ENV: str = "development"

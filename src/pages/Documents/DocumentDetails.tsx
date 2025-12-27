@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import {
     FileText,
     Calendar,
@@ -12,12 +13,15 @@ import {
     Printer,
     CheckCircle2,
     AlertCircle,
-    Loader2
+    Loader2,
+    Eye
 } from 'lucide-react';
 import Badge from '../../components/Shared/Badge';
+import Button from '../../components/UI/Button';
 import { useUpdateDocumentMutation, useGetDocumentQuery } from '../../features/api/apiSlice';
 import { toast } from 'react-toastify';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import PrintableDocument from './PrintableDocument';
 
 interface DocumentDetailsProps {
     docId: number | string;
@@ -27,6 +31,12 @@ interface DocumentDetailsProps {
 const DocumentDetails: React.FC<DocumentDetailsProps> = ({ docId, onStatusChange }) => {
     const { data: response, isLoading: isFetching, refetch } = useGetDocumentQuery(docId);
     const [updateDocument, { isLoading: isStatusUpdating }] = useUpdateDocumentMutation();
+    const [showPreview, setShowPreview] = React.useState(false);
+    const [mounted, setMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const document = response?.data || response; // Handle different response wrappers if necessary
 
@@ -53,6 +63,10 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ docId, onStatusChange
         } catch (error: any) {
             toast.error(error.data?.detail || 'Failed to finalize document');
         }
+    };
+
+    const handlePrint = () => {
+        window.print();
     };
 
     const sectionHeader = (icon: any, title: string) => (
@@ -101,12 +115,30 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ docId, onStatusChange
                         </Badge>
                     </div>
                     <div className="flex gap-2">
-                        <button className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors ring-1 ring-white/20">
+                        <Button
+                            variant="glass"
+                            rounded="xl"
+                            onClick={() => setShowPreview(!showPreview)}
+                            className={`p-2 shadow-none h-auto border-none ring-1 ring-white/20 text-white ${showPreview ? 'bg-white/20' : ''}`}
+                            title="Toggle Print Preview"
+                        >
+                            <Eye size={16} />
+                        </Button>
+                        <Button
+                            variant="glass"
+                            rounded="xl"
+                            onClick={handlePrint}
+                            className="p-2 shadow-none h-auto border-none ring-1 ring-white/20 text-white"
+                        >
                             <Printer size={16} />
-                        </button>
-                        <button className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors ring-1 ring-white/20">
+                        </Button>
+                        <Button
+                            variant="glass"
+                            rounded="xl"
+                            className="p-2 shadow-none h-auto border-none ring-1 ring-white/20 text-white"
+                        >
                             <Download size={16} />
-                        </button>
+                        </Button>
                     </div>
                 </div>
                 <div className="relative z-10">
@@ -136,14 +168,15 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ docId, onStatusChange
                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">This document is currently a draft. Issuing will sync inventory and ledgers.</p>
                         </div>
                     </div>
-                    <button
+                    <Button
                         onClick={handleFinalize}
                         disabled={isStatusUpdating}
-                        className="flex items-center gap-2 px-6 py-3 bg-primary dark:bg-accent hover:bg-primary/90 rounded-2xl text-[10px] font-black text-white uppercase tracking-widest transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
+                        rounded="2xl"
+                        className="px-6 py-3 text-[10px]"
                     >
                         {isStatusUpdating ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
                         <span>Confirm & Issue Invoice</span>
-                    </button>
+                    </Button>
                 </motion.div>
             )}
 
@@ -232,6 +265,82 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ docId, onStatusChange
                     </div>
                 </section>
             )}
+
+            {/* Print Preview Overlay */}
+            <AnimatePresence>
+                {showPreview && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-sm overflow-auto p-4 sm:p-8 no-print"
+                    >
+                        <div className="max-w-[21cm] mx-auto relative">
+                            <div className="sticky top-0 right-0 flex justify-end gap-3 mb-4 z-10">
+                                <Button
+                                    onClick={handlePrint}
+                                    className="bg-primary text-white px-6 py-2 rounded-xl flex items-center gap-2 shadow-xl"
+                                >
+                                    <Printer size={16} />
+                                    <span>Print Document</span>
+                                </Button>
+                                <Button
+                                    variant="glass"
+                                    onClick={() => setShowPreview(false)}
+                                    className="bg-white/10 text-white border-white/20 px-6 py-2 rounded-xl shadow-xl"
+                                >
+                                    Close Preview
+                                </Button>
+                            </div>
+                            <div className="shadow-2xl rounded-sm overflow-hidden bg-white">
+                                <PrintableDocument document={document} />
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Global Print Styles - Injected here to ensure availability */}
+            <style>
+                {`
+                    @media print {
+                        @page { size: auto; margin: 0mm; }
+                        html, body { height: auto !important; width: 100%; background: white; overflow: visible !important; }
+                        
+                        /* Hide Main App Root */
+                        #root { display: none !important; }
+                        
+                        /* Position Portal to fill page */
+                        #print-portal {
+                            position: absolute !important;
+                            top: 0 !important;
+                            left: 0 !important;
+                            width: 100% !important;
+                            height: auto !important;
+                            z-index: 99999 !important;
+                            overflow: visible !important;
+                            background: white;
+                        }
+
+                        /* Reset content styling for print */
+                        .printable-content {
+                            box-shadow: none !important;
+                            max-width: none !important;
+                            width: 100% !important;
+                            margin: 0 !important;
+                            padding: 10mm !important;
+                        }
+                    }
+                `}
+            </style>
+
+            {/* Print Portal - Using standard Tailwind visibility */}
+            {mounted && document.body ? createPortal(
+                <div id="print-portal" className="hidden print:block">
+                    <PrintableDocument document={document} />
+                </div>,
+                document.body
+            ) : null}
         </div>
     );
 };

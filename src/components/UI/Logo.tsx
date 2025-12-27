@@ -29,10 +29,10 @@ export default function Logo({ className = "", variant = 'header' }: LogoProps) 
             {!isIconOnly && (
                 <div className={`flex flex-col leading-none transition-colors duration-300 ${isHero ? 'text-center' : ''}`}>
                     <span className={`${isHero ? 'text-6xl md:text-9xl tracking-tighter' : 'text-xl'} font-heading font-black`} style={{ color: "var(--logo-primary)" }}>
-                        BLUE STAR
+                        {(import.meta.env.VITE_BRAND_NAME || 'BLUE STAR').split(' ').slice(0, 2).join(' ')}
                     </span>
                     <span className={`${isHero ? 'text-xl md:text-3xl tracking-[0.4em] mt-4' : 'text-[10px] tracking-[0.2em]'} font-bold uppercase`} style={{ color: "var(--logo-secondary)" }}>
-                        TRADING & Co.
+                        {(import.meta.env.VITE_BRAND_NAME || 'Trading & Co.').split(' ').slice(2).join(' ') || 'Trading & Co.'}
                     </span>
                     {isHero && (
                         <div className="h-1.5 w-32 bg-primary mx-auto rounded-full mt-8 shadow-[0_0_20px_rgba(56,189,248,0.3)] dark:shadow-[0_0_20px_rgba(56,189,248,0.5)]" />

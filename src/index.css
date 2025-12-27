@@ -5,29 +5,43 @@
 @tailwind utilities;
 
 :root {
-  --primary: #0A3D62;
-  --secondary: #1F7A8C;
-  --accent: #F19020;
+  --primary-color: #0A3D62;
+  /* Deep Navy */
+  --secondary-color: #2ECC71;
+  /* Emerald Green */
+  --accent-color: #F39C12;
+  /* Bright Orange */
+  --primary: 10, 61, 98;
+  /* Deep Navy */
+  --secondary: 46, 204, 113;
+  /* Emerald Green - for better contrast in light mode */
+  --accent: 243, 156, 18;
+  /* Bright Orange */
   --bg-main: #FFFFFF;
   --bg-card: #F8FAFC;
   --text-main: #0F172A;
   --text-muted: #475569;
-  --border-color: rgba(0, 0, 0, 0.05);
+  --border-color: rgba(15, 23, 42, 0.08);
   --logo-primary: #0A3D62;
-  --logo-secondary: #1F7A8C;
+  --logo-secondary: #2ECC71;
 }
 
 .dark {
-  --primary: #38BDF8;
-  --secondary: #7DD3FC;
-  --accent: #38BDF8;
+  --primary-color: #38BDF8;
+  /* Sky 400 */
+  --secondary-color: #8B5CF6;
+  /* Violet 500 */
+  --accent-color: #F59E0B;
+  --primary: 56, 189, 248;
+  /* Sky 400 */
+  --secondary: 139, 92, 246;
+  /* Violet 500 - vibrant for dark mode */
+  --accent: 245, 158, 11;
   --bg-main: #020617;
-  /* Very Deep Navy */
   --bg-card: #0F172A;
-  /* Deeper Navy */
   --text-main: #F1F5F9;
   --text-muted: #94A3B8;
-  --border-color: rgba(255, 255, 255, 0.05);
+  --border-color: rgba(255, 255, 255, 0.04);
   --logo-primary: #FFFFFF;
   --logo-secondary: #38BDF8;
 }
@@ -98,8 +112,59 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+}
+
+/* Vibrant Gradients */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+}
+
+.dark .bg-gradient-primary {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+}
+
+.bg-gradient-hover {
+  filter: brightness(1.15);
+}
+
+.bg-gradient-accent {
+  background: linear-gradient(135deg, var(--accent-color) 0%, #D97706 100%);
+}
+
+/* Print Styles */
+.mask-fade-right {
+  mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .printable-content,
+  .printable-content * {
+    visibility: visible;
+  }
+
+  .printable-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    border: none;
+  }
+
+  /* Hide slideover/modals/etc when printing */
+  .no-print {
+    display: none !important;
   }
 }

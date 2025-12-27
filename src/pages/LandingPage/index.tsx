@@ -24,7 +24,7 @@ export default function LandingPage() {
                 <SectionWrapper className="py-24 bg-card">
                     <div className="container mx-auto px-6">
                         <div className="text-center mb-16">
-                            <h2 className="text-4xl md:text-5xl font-heading font-bold text-primary dark:text-white mb-4">Why Choose BLUE STAR</h2>
+                            <h2 className="text-4xl md:text-5xl font-heading font-bold text-primary dark:text-white mb-4">Why Choose {import.meta.env.VITE_BRAND_NAME || 'BLUE STAR'}</h2>
                             <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">More than just logistics, we are your strategic partner in transport and trading.</p>
                         </div>
 

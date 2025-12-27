@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useGetItemsQuery } from '../../features/api/apiSlice';
+import Button from '../../components/UI/Button';
 import PageHeader from '../../components/Shared/PageHeader';
 import DataTable from '../../components/Shared/DataTable';
 import SlideOver from '../../components/Shared/SlideOver';
@@ -149,15 +150,14 @@ const Inventory = () => {
                         <PackageCheck size={16} className="text-secondary" />
                         <span>Adjust Stock</span>
                     </motion.button>
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                    <Button
                         onClick={handleCreate}
-                        className="group relative inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-primary to-secondary text-white text-[10px] font-bold uppercase tracking-[0.2em] rounded-xl shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 font-display"
+                        rounded="xl"
+                        className="px-6 py-2.5"
                     >
-                        <PlusCircle size={16} className="transition-transform group-hover:rotate-90" />
+                        <PlusCircle size={16} />
                         <span>Register New Item</span>
-                    </motion.button>
+                    </Button>
                 </div>
             </div>
 
@@ -176,24 +176,30 @@ const Inventory = () => {
                 </div>
 
                 <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-theme p-1.5 rounded-2xl shadow-sm">
-                    <button
+                    <Button
                         onClick={() => setItemType('')}
-                        className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${itemType === '' ? 'bg-primary text-white shadow-md' : 'text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'}`}
+                        variant={itemType === '' ? 'primary' : 'glass'}
+                        rounded="xl"
+                        className={`px-4 py-2 text-[10px] shadow-none h-auto border-none ${itemType !== '' ? 'dark:text-gray-400 text-gray-500' : ''}`}
                     >
                         All
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         onClick={() => setItemType('goods')}
-                        className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${itemType === 'goods' ? 'bg-primary text-white shadow-md' : 'text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'}`}
+                        variant={itemType === 'goods' ? 'primary' : 'glass'}
+                        rounded="xl"
+                        className={`px-4 py-2 text-[10px] shadow-none h-auto border-none ${itemType !== 'goods' ? 'dark:text-gray-400 text-gray-500' : ''}`}
                     >
                         Goods
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         onClick={() => setItemType('service')}
-                        className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${itemType === 'service' ? 'bg-primary text-white shadow-md' : 'text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'}`}
+                        variant={itemType === 'service' ? 'primary' : 'glass'}
+                        rounded="xl"
+                        className={`px-4 py-2 text-[10px] shadow-none h-auto border-none ${itemType !== 'service' ? 'dark:text-gray-400 text-gray-500' : ''}`}
                     >
                         Services
-                    </button>
+                    </Button>
                 </div>
             </div>
 

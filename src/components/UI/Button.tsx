@@ -13,6 +13,7 @@ type Props = {
     className?: string;
     onClick?: () => void;
     type?: 'button' | 'submit';
+    rounded?: 'full' | 'xl' | '2xl';
 };
 
 export default function Button({
@@ -20,24 +21,32 @@ export default function Button({
     variant = 'primary',
     className,
     onClick,
-    type = 'button'
+    type = 'button',
+    rounded = 'full'
 }: Props) {
     const variants = {
-        primary: 'bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white',
-        secondary: 'bg-secondary text-white hover:bg-secondary/90 dark:bg-secondary dark:text-white',
-        accent: 'bg-accent text-white hover:bg-accent/90 shadow-lg shadow-accent/20',
-        outline: 'border-2 border-primary text-primary hover:bg-primary hover:text-white dark:border-primary dark:text-primary dark:hover:bg-primary dark:hover:text-white',
+        primary: 'bg-gradient-primary text-white shadow-lg shadow-primary/25 border border-white/10 hover:bg-gradient-hover',
+        secondary: 'bg-emerald-500 dark:bg-violet-600 text-white shadow-lg shadow-emerald-500/25 border border-white/10 hover:brightness-110',
+        accent: 'bg-gradient-accent text-white shadow-lg shadow-amber-500/25 border border-white/10 hover:brightness-110',
+        outline: 'border-2 border-primary text-primary hover:bg-gradient-primary hover:text-white transition-all',
         glass: 'bg-white/10 dark:bg-slate-900/20 backdrop-blur-md border border-white/20 dark:border-slate-800/20 text-slate-800 dark:text-white hover:bg-white/20 dark:hover:bg-slate-800/20',
+    };
+
+    const roundedClasses = {
+        full: 'rounded-full',
+        xl: 'rounded-xl',
+        '2xl': 'rounded-2xl'
     };
 
     return (
         <motion.button
             type={type}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.98 }}
             className={cn(
-                'px-8 py-3 rounded-full font-heading font-semibold transition-colors duration-300',
+                'px-8 py-3 font-heading font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-2',
                 variants[variant],
+                roundedClasses[rounded],
                 className
             )}
             onClick={onClick}

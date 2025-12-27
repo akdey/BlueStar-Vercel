@@ -3,6 +3,7 @@ import { animate, motion, useMotionValue, useTransform } from 'framer-motion';
 import { Mail, Lock, ArrowRight, Truck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Logo from '../../components/UI/Logo';
+import Button from '../../components/UI/Button';
 import Copyright from '../../components/UI/Copyright';
 import ChangePasswordModal from '../../components/ChangePasswordModal';
 
@@ -274,28 +275,25 @@ export default function LoginPage() {
                                         </div>
                                     </div>
 
-                                    <motion.button
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
+                                    <Button
                                         disabled={isLoading}
                                         type="submit"
-                                        className="w-full group relative overflow-hidden rounded-xl bg-gradient-to-r from-primary to-secondary p-4 transition-all shadow-lg shadow-primary/10"
+                                        rounded="xl"
+                                        className="w-full p-4"
                                     >
-                                        <div className="relative flex items-center justify-center gap-2 text-white font-heading font-bold text-[10px] tracking-[0.2em] uppercase">
-                                            {isLoading ? (
-                                                <motion.div
-                                                    animate={{ rotate: 360 }}
-                                                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                                    className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full"
-                                                />
-                                            ) : (
-                                                <>
-                                                    <span>Connect</span>
-                                                    <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
-                                                </>
-                                            )}
-                                        </div>
-                                    </motion.button>
+                                        {isLoading ? (
+                                            <motion.div
+                                                animate={{ rotate: 360 }}
+                                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                                className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full"
+                                            />
+                                        ) : (
+                                            <>
+                                                <span>Connect</span>
+                                                <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+                                            </>
+                                        )}
+                                    </Button>
                                 </form>
 
                                 <footer className="mt-8 pt-6 border-t border-slate-100 dark:border-white/5 text-center">

@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Input, Select } from '../../components/Shared/Form';
+import Button from '../../components/UI/Button';
 import { Loader2, User, Phone, Mail, MapPin, CreditCard, FileText, Globe } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useCreatePartyMutation, useUpdatePartyMutation } from '../../features/api/apiSlice';
@@ -276,19 +277,18 @@ const PartyForm: React.FC<PartyFormProps> = ({ onSuccess, party }) => {
             </section>
 
             <div className="pt-4">
-                <motion.button
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
+                <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full flex items-center justify-center py-4 px-4 bg-gradient-to-r from-primary to-secondary rounded-2xl shadow-xl shadow-primary/20 text-xs font-black text-white uppercase tracking-[0.25em] focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    rounded="xl"
+                    className="w-full py-4 text-xs tracking-widest"
                 >
                     {isSubmitting ? (
                         <Loader2 className="animate-spin h-5 w-5" />
                     ) : (
                         <span>{isEdit ? 'Update Party Record' : 'Create New Party'}</span>
                     )}
-                </motion.button>
+                </Button>
             </div>
         </form>
     );

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
-import { motion } from 'framer-motion';
+import Button from '../UI/Button';
 
 interface PageHeaderProps {
     title: string;
@@ -15,15 +15,14 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, actionLabel, onAction })
                 {title}
             </h1>
             {actionLabel && onAction && (
-                <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                <Button
                     onClick={onAction}
-                    className="group relative inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-primary to-secondary text-white text-[10px] font-bold uppercase tracking-[0.2em] rounded-xl shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40"
+                    rounded="xl"
+                    className="px-6 py-2.5"
                 >
-                    <Plus size={16} className="transition-transform group-hover:rotate-90" />
+                    <Plus size={16} />
                     <span>{actionLabel}</span>
-                </motion.button>
+                </Button>
             )}
         </div>
     );
