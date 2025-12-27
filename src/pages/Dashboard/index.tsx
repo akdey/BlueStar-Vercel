@@ -301,17 +301,18 @@ const Dashboard = () => {
                             </div>
                             <h4 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight mb-2">Advanced Forecasting</h4>
                             <p className="text-xs text-gray-500 dark:text-gray-400 max-w-sm font-medium leading-relaxed">
-                                Our proprietary machine learning models are currently being trained on your historical data to provide hyper-accurate revenue predictions.
+                                {/* Honest admission that development hasn't started */}
+                                This module is currently in the backlog. I'm focusing on stabilizing the core data ingestion first before I start building the prediction logic.
                             </p>
                             <div className="mt-6 flex gap-4">
                                 <div className="text-center">
-                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Model Precision</p>
-                                    <p className="text-sm font-bold text-gray-900 dark:text-white">94.2%</p>
+                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Current Priority</p>
+                                    <p className="text-sm font-bold text-gray-400 dark:text-gray-500 italic">P3 - Backlog</p>
                                 </div>
                                 <div className="w-px h-8 bg-gray-200 dark:bg-slate-800" />
                                 <div className="text-center">
-                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Dataset Size</p>
-                                    <p className="text-sm font-bold text-gray-900 dark:text-white">12.5k+</p>
+                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Dev Status</p>
+                                    <p className="text-sm font-bold text-gray-900 dark:text-white">Not Started</p>
                                 </div>
                             </div>
                         </div>
