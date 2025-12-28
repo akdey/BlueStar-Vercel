@@ -28,6 +28,50 @@ interface ChatHistoryItem {
     content: string;
 }
 
+// 1. Move Typewriter Component OUTSIDE to prevent re-mounting on parent state changes
+const TypewriterMessage = ({ text, onComplete, onCharTyped }: { text: string; onComplete?: () => void, onCharTyped?: () => void }) => {
+    const [displayedText, setDisplayedText] = useState('');
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    useEffect(() => {
+        if (currentIndex < text.length) {
+            const timeout = setTimeout(() => {
+                setDisplayedText(prev => prev + text[currentIndex]);
+                setCurrentIndex(prev => prev + 1);
+                if (onCharTyped) onCharTyped();
+            }, 10);
+            return () => clearTimeout(timeout);
+        } else if (onComplete) {
+            onComplete();
+        }
+    }, [currentIndex, text, onComplete, onCharTyped]);
+
+    return <span>{displayedText}</span>;
+};
+
+// 2. Move Typing Indicator OUTSIDE
+const TypingIndicator = () => (
+    <div className="flex gap-1.5 px-2 py-2">
+        {[0, 1, 2].map((i) => (
+            <motion.span
+                key={i}
+                animate={{
+                    y: [0, -7, 0],
+                    opacity: [0.5, 1, 0.5],
+                    scale: [1, 1.2, 1]
+                }}
+                transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                    delay: i * 0.2,
+                    ease: "easeInOut"
+                }}
+                className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.6)]"
+            />
+        ))}
+    </div>
+);
+
 const EnterpriseChat = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
@@ -52,13 +96,14 @@ const EnterpriseChat = () => {
     const [showRightScroll, setShowRightScroll] = useState(false);
 
     // Auto-scroll to bottom of messages
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
     useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollTo({
-                top: scrollRef.current.scrollHeight,
-                behavior: 'smooth'
-            });
-        }
+        scrollToBottom();
     }, [messages, isTyping]);
 
     const checkScrollButtons = () => {
@@ -118,6 +163,9 @@ const EnterpriseChat = () => {
         }
     };
 
+    const { subTotal, totalTax, grandTotal } = { subTotal: 0, totalTax: 0, grandTotal: 0 }; // Placeholder if needed or remove
+
+
     return (
         <div className="flex flex-col h-[calc(100vh-12rem)] max-w-5xl mx-auto relative overflow-hidden bg-gray-50/30 dark:bg-slate-950/20 rounded-3xl border border-gray-200 dark:border-slate-800 shadow-2xl">
 
@@ -171,7 +219,7 @@ const EnterpriseChat = () => {
                     </div>
                 ) : (
                     <>
-                        {messages.map((msg) => (
+                        {messages.map((msg, idx) => (
                             <motion.div
                                 key={msg.id}
                                 initial={{ opacity: 0, y: 10 }}
@@ -183,21 +231,26 @@ const EnterpriseChat = () => {
                                         {msg.sender === 'user' ? <User size={16} /> : <Bot size={16} />}
                                     </div>
                                     <div className={`p-4 rounded-2xl text-sm leading-relaxed shadow-sm ${msg.sender === 'user' ? 'bg-primary text-white rounded-tr-none font-medium' : 'bg-white/80 dark:bg-slate-900/80 text-gray-800 dark:text-gray-200 rounded-tl-none border border-gray-200 dark:border-slate-800 backdrop-blur-sm'}`}>
-                                        {msg.text}
+                                        {msg.sender === 'ai' && idx === messages.length - 1 ? (
+                                            <TypewriterMessage text={msg.text} onCharTyped={scrollToBottom} />
+                                        ) : (
+                                            msg.text
+                                        )}
                                     </div>
                                 </div>
                             </motion.div>
                         ))}
                         {isTyping && (
                             <div className="flex justify-start gap-3">
-                                <div className="shrink-0 w-8 h-8 rounded-lg bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 flex items-center justify-center text-primary"><Bot size={16} /></div>
-                                <div className="bg-white/80 dark:bg-slate-900/80 p-4 rounded-2xl rounded-tl-none border border-gray-200 dark:border-slate-800 flex gap-1">
-                                    <span className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce" />
-                                    <span className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:0.2s]" />
-                                    <span className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:0.4s]" />
+                                <div className="shrink-0 w-8 h-8 rounded-lg bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 flex items-center justify-center text-primary">
+                                    <Bot size={16} />
+                                </div>
+                                <div className="bg-white/80 dark:bg-slate-900/80 p-2 md:p-3 rounded-2xl rounded-tl-none border border-gray-200 dark:border-slate-800 shadow-sm flex items-center">
+                                    <TypingIndicator />
                                 </div>
                             </div>
                         )}
+                        <div ref={messagesEndRef} />
                     </>
                 )}
             </main>

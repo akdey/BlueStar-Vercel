@@ -23,7 +23,8 @@ async def create_voucher(
     voucher = await VoucherService.create_voucher(voucher_in)
     
     # Notification Logic
-    msg = f"New {voucher.voucher_type.value} draft {voucher.voucher_number} created by {current_user.username}"
+    user_display = current_user.full_name or current_user.username
+    msg = f"New {voucher.voucher_type.value} draft {voucher.voucher_number} created by {user_display}"
     
     await NotificationService.create_notification(NotificationCreate(
         title="New Draft Voucher",
@@ -78,7 +79,7 @@ async def create_voucher(
         f"Tax (GST): ₹{voucher.tax_amount:,.2f}\n"
         f"<b>Grand Total: ₹{voucher.grand_total:,.2f}</b>\n\n"
         
-        f"✍️ <i>Created by {current_user.username}</i>\n"
+        f"✍️ <i>Created by {current_user.full_name or current_user.username}</i>\n"
         f"➖➖➖➖➖➖➖➖➖➖➖➖\n"
         f"⚠️ <b>Action Required:</b>"
     )
@@ -122,6 +123,8 @@ async def update_voucher(
                 status_code=status.HTTP_403_FORBIDDEN, 
                 detail="Only Administrators can issue or finalize vouchers."
             )
+        # Record the Approver ID from the Auth Token
+        voucher_update.approved_by_id = current_user.id
 
     voucher = await VoucherService.update_voucher(voucher_id, voucher_update)
     return JSONResponse(

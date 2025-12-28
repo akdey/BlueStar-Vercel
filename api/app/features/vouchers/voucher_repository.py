@@ -1,6 +1,6 @@
 from typing import Optional, Sequence
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, joinedload
 from app.core.database import SessionLocal
 from app.features.vouchers.voucher_entity import TradeVoucher, VoucherItem, VoucherType
 from app.features.vouchers.voucher_schema import VoucherCreate
@@ -24,6 +24,7 @@ class VoucherRepository:
                     tax_amount=voucher_in.tax_amount,
                     grand_total=voucher_in.grand_total,
                     status=voucher_in.status,
+                    approved_by_id=voucher_in.approved_by_id,
                     notes=voucher_in.notes
                 )
                 db.add(db_voucher)
@@ -46,7 +47,7 @@ class VoucherRepository:
                 # Reload with items
                 result = await db.execute(
                     select(TradeVoucher)
-                    .options(selectinload(TradeVoucher.items))
+                    .options(selectinload(TradeVoucher.items), joinedload(TradeVoucher.approver))
                     .where(TradeVoucher.id == db_voucher.id)
                 )
                 return result.scalar_one()
@@ -60,7 +61,7 @@ class VoucherRepository:
         async with SessionLocal() as db:
             result = await db.execute(
                 select(TradeVoucher)
-                .options(selectinload(TradeVoucher.items))
+                .options(selectinload(TradeVoucher.items), joinedload(TradeVoucher.approver))
                 .where(TradeVoucher.id == voucher_id)
             )
             return result.scalar_one_or_none()
@@ -68,7 +69,7 @@ class VoucherRepository:
     @staticmethod
     async def get_all(skip: int = 0, limit: int = 100, voucher_type: Optional[VoucherType] = None) -> Sequence[TradeVoucher]:
         async with SessionLocal() as db:
-             query = select(TradeVoucher).options(selectinload(TradeVoucher.items)).order_by(TradeVoucher.created_at.desc()).offset(skip).limit(limit)
+             query = select(TradeVoucher).options(selectinload(TradeVoucher.items), joinedload(TradeVoucher.approver)).order_by(TradeVoucher.created_at.desc()).offset(skip).limit(limit)
              if voucher_type:
                  query = query.where(TradeVoucher.voucher_type == voucher_type)
              
@@ -76,7 +77,7 @@ class VoucherRepository:
              return result.scalars().all()
 
     @staticmethod
-    async def update(voucher_id: int, status: Optional[str] = None, notes: Optional[str] = None) -> Optional[TradeVoucher]:
+    async def update(voucher_id: int, status: Optional[str] = None, notes: Optional[str] = None, approved_by_id: Optional[int] = None) -> Optional[TradeVoucher]:
         async with SessionLocal() as db:
             result = await db.execute(
                 select(TradeVoucher)
@@ -91,13 +92,15 @@ class VoucherRepository:
                 db_voucher.status = status
             if notes:
                 db_voucher.notes = notes
+            if approved_by_id:
+                db_voucher.approved_by_id = approved_by_id
                 
             await db.commit()
             
-            # Re-fetch with items
+            # Re-fetch with items and approver
             final_result = await db.execute(
                 select(TradeVoucher)
-                .options(selectinload(TradeVoucher.items))
+                .options(selectinload(TradeVoucher.items), joinedload(TradeVoucher.approver))
                 .where(TradeVoucher.id == voucher_id)
             )
             return final_result.scalar_one()

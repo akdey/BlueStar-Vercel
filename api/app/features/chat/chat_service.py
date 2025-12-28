@@ -6,6 +6,9 @@ from google.genai import types
 from datetime import datetime, timedelta
 
 from app.features.dashboard.dashboard_repository import DashboardRepository
+from app.features.parties.party_repository import PartyRepository
+from app.features.vouchers.voucher_repository import VoucherRepository
+from app.features.trips.trip_repository import TripRepository
 from app.core.logger import logger
 from app.core.config import settings
 
@@ -24,34 +27,41 @@ class ChatService:
             "get_inventory_status": self._get_inventory_status,
             "get_outstanding_balances": self._get_outstanding_balances,
             "get_fleet_status": self._get_fleet_status,
-            "get_top_partners": self._get_top_partners
+            "get_top_partners": self._get_top_partners,
+            "search_parties": self._search_parties,
+            "get_party_details": self._get_party_details,
+            "get_recent_vouchers": self._get_recent_vouchers,
+            "get_recent_trips": self._get_recent_trips
         }
         
-        self.system_prompt = """You are the BlueStar Enterprise Assistant. Your job is to help users query data about their Trading and Transport business.
+        self.system_instruction = """You are the BlueStar Enterprise Assistant. Your job is to help users query data about their Trading and Transport business.
 
 You have access to the following functions to retrieve real-time data:
-- get_monthly_sales: Get sales summary for the current month
-- get_monthly_expenses: Get trip operating expenses (fuel, toll, driver) for current month
-- get_inventory_status: Get items that are low on stock
-- get_outstanding_balances: Get total receivable and payable balances
-- get_fleet_status: Get current status of vehicles and drivers
-- get_top_partners: Get top customers and suppliers by balance
+- get_monthly_sales: Get sales summary for the current month.
+- get_monthly_expenses: Get trip operating expenses for current month.
+- get_inventory_status: Get items that are low on stock.
+- get_outstanding_balances: Get total receivable and payable balances.
+- get_fleet_status: Get current status of vehicles and drivers.
+- get_top_partners: Get top customers and suppliers by balance.
+
+NEW GRANULAR FUNCTIONS:
+- search_parties(query: str): Search for customers or suppliers by name or phone.
+- get_party_details(party_id: int): Get full details and balance for a specific party.
+- get_recent_vouchers(voucher_type: str, limit: int): Get recent vouchers. voucher_type can be 'invoice', 'challan', 'bill', or 'quotation'.
+- get_recent_trips(limit: int): Get most recent transport trips with status and basic income.
 
 RULES:
-1. ONLY provide information derived from these functions
-2. DO NOT provide outside general knowledge or information not in the system
-3. If asked for something you cannot answer with available functions, politely say you don't have access to that data yet
-4. Be professional, concise, and helpful
-5. When you need data, call the appropriate function
-
-When responding, if you need to call a function, respond with: CALL_FUNCTION: function_name"""
+1. ONLY provide information derived from these functions.
+2. If you need data, call a function by responding with exactly: CALL_FUNCTION: function_name({"arg1": val1, ...})
+3. If no arguments are needed, use: CALL_FUNCTION: function_name({})
+4. Be professional, concise, and helpful."""
 
     async def _get_monthly_sales(self) -> str:
         """Gets the sales summary for the current month."""
         start_date = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         end_date = datetime.now()
         stats = await DashboardRepository.get_sales_stats(start_date, end_date)
-        return f"Total Sales Value for this month: ₹{stats['total_sales_value']:,.2f}"
+        return f"Total Sales Value for this month: ₹{stats['total_sales_amount']:,.2f}"
 
     async def _get_monthly_expenses(self) -> str:
         """Gets the trip operating expenses for the current month."""
@@ -97,6 +107,60 @@ When responding, if you need to call a function, respond with: CALL_FUNCTION: fu
         supp = ", ".join([f"{p['name']} (₹{p['balance']:,.2f})" for p in partners['top_suppliers']]) if partners['top_suppliers'] else "None"
         return f"Top Customers: {cust}\nTop Suppliers: {supp}"
 
+    async def _search_parties(self, query: str) -> str:
+        """Searches for parties (customers/suppliers)."""
+        parties = await PartyRepository.get_all(search=query, limit=5)
+        if not parties:
+            return f"No customers or suppliers found matching '{query}'."
+        res = "Search Results:\n"
+        for p in parties:
+            res += f"- {p.name} (ID: {p.id}, Code: {p.code}, Type: {p.party_type})\n"
+        return res
+
+    async def _get_party_details(self, party_id: int) -> str:
+        """Gets full details of a specific party."""
+        p = await PartyRepository.get_by_id(party_id)
+        if not p:
+            return f"Party with ID {party_id} not found."
+        return (
+            f"Details for {p.name}:\n"
+            f"- Code: {p.code}\n"
+            f"- Type: {p.party_type}\n"
+            f"- Contact: {p.phone or p.mobile or 'N/A'}\n"
+            f"- GSTIN: {p.gstin or 'N/A'}\n"
+            f"- Current Balance: ₹{p.current_balance:,.2f} ({'Receivable' if p.current_balance > 0 else 'Payable'})\n"
+            f"- Address: {p.address_line_1}, {p.city}, {p.state}"
+        )
+
+    async def _get_recent_vouchers(self, voucher_type: str = None, limit: int = 5) -> str:
+        """Gets recent vouchers of a certain type."""
+        v_type = None
+        if voucher_type:
+            from app.features.vouchers.voucher_entity import VoucherType
+            try:
+                v_type = VoucherType(voucher_type.lower())
+            except: pass
+            
+        vouchers = await VoucherRepository.get_all(limit=limit, voucher_type=v_type)
+        if not vouchers:
+            return "No recent vouchers found."
+        
+        res = f"Recent {voucher_type or 'Voucher'}s:\n"
+        for v in vouchers:
+            res += f"- #{v.voucher_number} | {v.voucher_date} | {v.grand_total:,.2f} | Status: {v.status}\n"
+        return res
+
+    async def _get_recent_trips(self, limit: int = 5) -> str:
+        """Gets recent transport trips."""
+        trips = await TripRepository.get_all(limit=limit)
+        if not trips:
+            return "No recent trips found."
+        
+        res = "Recent Trips:\n"
+        for t in trips:
+            res += f"- Trip ID: {t.id} | Vehicle: {t.vehicle_number or 'N/A'} | Start: {t.start_date.date()} | Revenue: ₹{t.freight_income:,.2f} | Status: {t.status}\n"
+        return res
+
     async def get_response(self, message: str, history: List[Dict[str, str]] = []) -> str:
         """Get response from the AI assistant."""
         try:
@@ -111,48 +175,69 @@ When responding, if you need to call a function, respond with: CALL_FUNCTION: fu
                     parts=[types.Part(text=msg['content'])]
                 ))
             
-            # Add system prompt and current message
-            full_prompt = f"{self.system_prompt}\n\nUser: {message}"
+            # Add current message
             contents.append(types.Content(
                 role="user",
-                parts=[types.Part(text=full_prompt)]
+                parts=[types.Part(text=message)]
             ))
             
-            # Generate response using gemini-pro-latest
+            # Use GenerateContentConfig for system instruction and model optimization
+            config = types.GenerateContentConfig(
+                system_instruction=self.system_instruction,
+                temperature=0.1,  # Lower temperature for more factual data responses
+            )
+
+            # Generate response using gemini-flash-lite-latest (Highest free-tier quota)
             response = self.client.models.generate_content(
-                model='gemini-pro-latest',
-                contents=contents
+                model='gemini-flash-lite-latest',
+                contents=contents,
+                config=config
             )
             
             response_text = response.text
             
             # Check if function call is needed
             if "CALL_FUNCTION:" in response_text:
-                func_name = response_text.split("CALL_FUNCTION:")[1].strip().split()[0]
-                if func_name in self.tools:
-                    logger.info(f"Calling function: {func_name}")
-                    func_result = await self.tools[func_name]()
+                try:
+                    # Parse "CALL_FUNCTION: function_name({"arg": val})"
+                    parts = response_text.split("CALL_FUNCTION:")[1].strip().split("(", 1)
+                    func_name = parts[0].strip()
+                    args_str = parts[1].rsplit(")", 1)[0].strip()
+                    args = json.loads(args_str) if args_str else {}
                     
-                    # Get final response with the data
-                    follow_up_contents = contents + [
-                        types.Content(
-                            role="model",
-                            parts=[types.Part(text=response_text)]
-                        ),
-                        types.Content(
-                            role="user",
-                            parts=[types.Part(text=f"Based on this data: {func_result}\n\nProvide a clear, helpful answer to the user's question: {message}")]
+                    if func_name in self.tools:
+                        logger.info(f"Calling function: {func_name} with args: {args}")
+                        func_result = await self.tools[func_name](**args)
+                        
+                        # Get final response with the data
+                        follow_up_contents = contents + [
+                            types.Content(
+                                role="model",
+                                parts=[types.Part(text=response_text)]
+                            ),
+                            types.Content(
+                                role="user",
+                                parts=[types.Part(text=f"Based on this data: {func_result}\n\nProvide a clear, helpful answer to the user's question: {message}")]
+                            )
+                        ]
+                        
+                        final_response = self.client.models.generate_content(
+                            model='gemini-flash-lite-latest',
+                            contents=follow_up_contents,
+                            config=config
                         )
-                    ]
-                    
-                    final_response = self.client.models.generate_content(
-                        model='gemini-pro-latest',
-                        contents=follow_up_contents
-                    )
-                    return final_response.text
+                        return final_response.text
+                except Exception as ex:
+                    logger.error(f"Failed to parse or execute function call: {str(ex)}")
+                    return f"I tried to look that up but had trouble processing the data. (Error: {str(ex)})"
             
             return response_text
             
         except Exception as e:
-            logger.error(f"Error in ChatService: {str(e)}")
+            error_str = str(e)
+            if "429" in error_str:
+                logger.warning(f"Gemini Quota Exhausted: {error_str}")
+                return "I've hit my usage limit (Quota Exhausted). Please wait a minute or ensure your API key has high-tier access enabled."
+            
+            logger.error(f"Error in ChatService: {error_str}")
             return f"I encountered an error while processing your request. Please try rephrasing your question."

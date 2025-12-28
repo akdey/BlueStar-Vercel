@@ -33,6 +33,7 @@ class VoucherBase(BaseModel):
     grand_total: float = 0.0
     
     status: VoucherStatus = VoucherStatus.DRAFT
+    approved_by_id: Optional[int] = None
     notes: Optional[str] = None
 
 class VoucherCreate(VoucherBase):
@@ -40,6 +41,7 @@ class VoucherCreate(VoucherBase):
 
 class VoucherUpdate(BaseModel):
     status: Optional[VoucherStatus] = None
+    approved_by_id: Optional[int] = None
     notes: Optional[str] = None
 
 class VoucherResponse(VoucherBase):
@@ -47,5 +49,6 @@ class VoucherResponse(VoucherBase):
     created_at: datetime
     updated_at: datetime
     items: List[VoucherItemResponse] = []
+    approved_by_name: Optional[str] = None
     
     model_config = ConfigDict(from_attributes=True)

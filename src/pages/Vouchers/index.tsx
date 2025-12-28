@@ -1,12 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import PageHeader from '../../components/Shared/PageHeader';
 import DataTable from '../../components/Shared/DataTable';
 import SlideOver from '../../components/Shared/SlideOver';
 import VoucherForm from './VoucherForm';
 import VoucherDetails from './VoucherDetails';
+import PrintableVoucher from './PrintableVoucher';
 import Badge from '../../components/Shared/Badge';
-import { useGetVouchersQuery } from '../../features/api/apiSlice';
+import { useGetVouchersQuery, useGetPartiesQuery } from '../../features/api/apiSlice';
 import Button from '../../components/UI/Button';
+import Skeleton from '../../components/Shared/Skeleton';
 import {
     FileText,
     Calendar,
@@ -15,7 +18,8 @@ import {
     Search,
     PlusCircle,
     Eye,
-    Filter
+    Filter,
+    Printer
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -23,11 +27,23 @@ const Vouchers = () => {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [selectedVoucher, setSelectedVoucher] = useState<any>(null);
+    const [voucherToPrint, setVoucherToPrint] = useState<any>(null);
     const [voucherTypeFilter, setVoucherTypeFilter] = useState<string>('');
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const { data: vouchers, isLoading, refetch } = useGetVouchersQuery({
         type: voucherTypeFilter || undefined
     });
+    const { data: partiesData } = useGetPartiesQuery({});
+
+    // Create a map of party_id to party_name for quick lookup
+    const partyMap = new Map(
+        partiesData?.data?.map((party: any) => [party.id, party.name]) || []
+    );
 
     const handleCreate = () => {
         setSelectedVoucher(null);
@@ -39,31 +55,42 @@ const Vouchers = () => {
         setIsDetailsOpen(true);
     };
 
+    const handlePrint = (voucher: any) => {
+        setVoucherToPrint(voucher);
+        // Small delay to ensure the portal is rendered before printing
+        setTimeout(() => {
+            window.print();
+        }, 100);
+    };
+
     const columns = [
         {
             header: 'Voucher ID',
-            accessorKey: 'doc_number',
+            accessorKey: 'voucher_number',
             cell: (row: any) => (
                 <div
                     onClick={() => handleView(row)}
                     className="flex flex-col cursor-pointer group"
                 >
                     <span className="font-bold text-main dark:text-white group-hover:text-primary transition-colors underline decoration-primary/20 decoration-2 underline-offset-4">
-                        {row.doc_number || `VCH-${row.id}`}
+                        {row.voucher_number || `VCH-${row.id}`}
                     </span>
-                    <span className="text-[10px] text-muted font-mono tracking-tighter uppercase">{row.doc_type}</span>
+                    <span className="text-[10px] text-muted font-mono tracking-tighter uppercase">{row.voucher_type}</span>
                 </div>
             )
         },
         {
             header: 'Stakeholder',
             accessorKey: 'party_name',
-            cell: (row: any) => (
-                <div className="flex flex-col">
-                    <span className="text-xs font-black text-main/80 dark:text-gray-300 uppercase tracking-tight">{row.party_name || 'Generic Party'}</span>
-                    <span className="text-[10px] text-muted font-bold italic">ID: {row.party_id}</span>
-                </div>
-            )
+            cell: (row: any) => {
+                const partyName = partyMap.get(row.party_id) || row.party_name || 'Unknown Party';
+                return (
+                    <div className="flex flex-col">
+                        <span className="text-xs font-black text-main/80 dark:text-gray-300 uppercase tracking-tight">{partyName}</span>
+                        <span className="text-[10px] text-muted font-bold italic">ID: {row.party_id}</span>
+                    </div>
+                );
+            }
         },
         {
             header: 'Date',
@@ -107,12 +134,22 @@ const Vouchers = () => {
             header: 'Actions',
             id: 'actions',
             cell: (row: any) => (
-                <button
-                    onClick={() => handleView(row)}
-                    className="p-2 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all"
-                >
-                    <Eye size={18} />
-                </button>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => handleView(row)}
+                        className="p-2 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all"
+                        title="View Details"
+                    >
+                        <Eye size={18} />
+                    </button>
+                    <button
+                        onClick={() => handlePrint(row)}
+                        className="p-2 text-gray-400 hover:text-secondary hover:bg-secondary/5 rounded-xl transition-all"
+                        title="Print Voucher"
+                    >
+                        <Printer size={18} />
+                    </button>
+                </div>
             )
         }
     ];
@@ -161,8 +198,9 @@ const Vouchers = () => {
 
             <DataTable
                 columns={columns as any}
-                data={vouchers?.data || []}
+                data={isLoading ? [] : (vouchers?.data || [])}
                 isLoading={isLoading}
+                skeletonRows={5}
                 keyField="id"
                 emptyMessage="No vouchers found in registry."
             />
@@ -187,6 +225,42 @@ const Vouchers = () => {
                     <VoucherForm onSuccess={() => { setIsFormOpen(false); refetch(); }} />
                 </div>
             </SlideOver>
+
+            {/* Global Print Styles - Injected for direct printing */}
+            <style>
+                {`
+                    @media print {
+                        @page { size: auto; margin: 0mm; }
+                        html, body { height: auto !important; width: 100%; background: white; overflow: visible !important; }
+                        #root { display: none !important; }
+                        #print-portal {
+                            position: absolute !important;
+                            top: 0 !important;
+                            left: 0 !important;
+                            width: 100% !important;
+                            height: auto !important;
+                            z-index: 99999 !important;
+                            overflow: visible !important;
+                            background: white;
+                        }
+                        .printable-content {
+                            box-shadow: none !important;
+                            max-width: none !important;
+                            width: 100% !important;
+                            margin: 0 !important;
+                            padding: 10mm !important;
+                        }
+                    }
+                `}
+            </style>
+
+            {/* Print Portal */}
+            {mounted && voucherToPrint && createPortal(
+                <div id="print-portal" className="hidden print:block">
+                    <PrintableVoucher voucher={voucherToPrint} />
+                </div>,
+                document.body
+            )}
         </div>
     );
 };

@@ -16,6 +16,14 @@ class Settings(BaseSettings):
     TELEGRAM_BOT_TOKEN: str = ""
     TELEGRAM_CHAT_ID: str = ""
     
+    # Company Info (for Vouchers/Bills)
+    COMPANY_NAME: str = "BLUE STAR TRADING & CO."
+    COMPANY_ADDRESS: str = "Srirampur, Ratulia, Paschim Medinipur, West Bengal, 721139"
+    COMPANY_PHONE: str = "+91 7001031322"
+    COMPANY_EMAIL: str = "bluestartradingandco@gmail.com"
+    COMPANY_GSTIN: str = "19XXXXX0000X1Z5"
+    COMPANY_WEBSITE: str = "www.bluestar-trading.com"
+    
     # SMTP Settings (Gmail)
     SMTP_HOST: str = "smtp.gmail.com"
     SMTP_PORT: int = 587

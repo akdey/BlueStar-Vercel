@@ -12,6 +12,7 @@ import {
 import Button from '../../components/UI/Button';
 import { useGetDashboardOverviewQuery, useGetDashboardChartsQuery } from '../../features/api/apiSlice';
 import { GenericChart } from './DashboardCharts';
+import Skeleton from '../../components/Shared/Skeleton';
 
 const StatCard = ({ title, value, icon: Icon, trend, color, accentColor }: any) => {
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -117,7 +118,16 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {isLoading ? (
                     [1, 2, 3, 4].map(i => (
-                        <div key={i} className="h-40 bg-card/50 backdrop-blur-sm rounded-2xl border border-theme animate-pulse" />
+                        <div key={i} className="p-6 bg-card dark:bg-slate-900/50 backdrop-blur-md rounded-2xl border border-theme shadow-sm relative overflow-hidden">
+                            <div className="flex justify-between items-start">
+                                <Skeleton variant="rounded" width={48} height={48} />
+                                <Skeleton variant="rounded" width={60} height={20} />
+                            </div>
+                            <div className="mt-6 space-y-2">
+                                <Skeleton variant="text" width="40%" />
+                                <Skeleton variant="text" width="80%" height={32} />
+                            </div>
+                        </div>
                     ))
                 ) : (
                     <>
@@ -164,16 +174,24 @@ const Dashboard = () => {
                     className="lg:col-span-2 p-8 bg-card backdrop-blur-xl rounded-[2.5rem] border border-theme shadow-sm min-h-[400px] flex flex-col"
                 >
                     <div className="flex items-center justify-between mb-8">
-                        <div>
-                            <h3 className="text-xl font-black text-main uppercase tracking-tight">Revenue Stream</h3>
-                            <p className="text-[10px] text-muted font-bold uppercase tracking-[0.2em] mt-1">Daily Sales Momentum</p>
+                        <div className="space-y-2">
+                            <h3 className="text-xl font-black text-main uppercase tracking-tight">
+                                {isLoading ? <Skeleton width={150} height={24} /> : 'Revenue Stream'}
+                            </h3>
+                            <p className="text-[10px] text-muted font-bold uppercase tracking-[0.2em] mt-1">
+                                {isLoading ? <Skeleton width={200} height={12} /> : 'Daily Sales Momentum'}
+                            </p>
                         </div>
-                        <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
-                            <TrendingUp size={20} />
-                        </div>
+                        {isLoading ? <Skeleton variant="rounded" width={40} height={40} /> : (
+                            <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+                                <TrendingUp size={20} />
+                            </div>
+                        )}
                     </div>
                     <div className="flex-1 min-h-[250px]">
-                        {charts?.revenue_trend && (
+                        {isLoading ? (
+                            <Skeleton variant="rounded" width="100%" height="100%" />
+                        ) : charts?.revenue_trend && (
                             <GenericChart
                                 type={charts.revenue_trend.chart_type}
                                 title={charts.revenue_trend.title}
@@ -189,12 +207,18 @@ const Dashboard = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     className="p-8 bg-card backdrop-blur-xl rounded-[2.5rem] border border-theme shadow-sm flex flex-col"
                 >
-                    <div className="mb-6">
-                        <h3 className="text-lg font-black text-main uppercase tracking-tight">Deployment</h3>
-                        <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">Trip Status Breakdown</p>
+                    <div className="mb-6 space-y-2">
+                        <h3 className="text-lg font-black text-main uppercase tracking-tight">
+                            {isLoading ? <Skeleton width={120} height={20} /> : 'Deployment'}
+                        </h3>
+                        <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">
+                            {isLoading ? <Skeleton width={160} height={10} /> : 'Trip Status Breakdown'}
+                        </p>
                     </div>
                     <div className="flex-1 min-h-[200px]">
-                        {charts?.trip_status && (
+                        {isLoading ? (
+                            <Skeleton variant="rounded" width="100%" height="100%" />
+                        ) : charts?.trip_status && (
                             <GenericChart
                                 type={charts.trip_status.chart_type}
                                 title={charts.trip_status.title}
@@ -210,12 +234,18 @@ const Dashboard = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     className="p-8 bg-card backdrop-blur-xl rounded-[2.5rem] border border-theme shadow-sm flex flex-col"
                 >
-                    <div className="mb-6">
-                        <h3 className="text-lg font-black text-main uppercase tracking-tight">Operational Burn</h3>
-                        <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">Logistics Expenses</p>
+                    <div className="mb-6 space-y-2">
+                        <h3 className="text-lg font-black text-main uppercase tracking-tight">
+                            {isLoading ? <Skeleton width={140} height={20} /> : 'Operational Burn'}
+                        </h3>
+                        <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">
+                            {isLoading ? <Skeleton width={120} height={10} /> : 'Logistics Expenses'}
+                        </p>
                     </div>
                     <div className="flex-1 min-h-[200px]">
-                        {charts?.expense_breakdown && (
+                        {isLoading ? (
+                            <Skeleton variant="rounded" width="100%" height="100%" />
+                        ) : charts?.expense_breakdown && (
                             <GenericChart
                                 type={charts.expense_breakdown.chart_type}
                                 title={charts.expense_breakdown.title}
@@ -231,12 +261,18 @@ const Dashboard = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     className="p-8 bg-card backdrop-blur-xl rounded-[2.5rem] border border-theme shadow-sm flex flex-col"
                 >
-                    <div className="mb-6">
-                        <h3 className="text-lg font-black text-main uppercase tracking-tight">Top Partners</h3>
-                        <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">Outstanding Balance</p>
+                    <div className="mb-6 space-y-2">
+                        <h3 className="text-lg font-black text-main uppercase tracking-tight">
+                            {isLoading ? <Skeleton width={130} height={20} /> : 'Top Partners'}
+                        </h3>
+                        <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">
+                            {isLoading ? <Skeleton width={150} height={10} /> : 'Outstanding Balance'}
+                        </p>
                     </div>
                     <div className="flex-1 min-h-[200px]">
-                        {charts?.top_customers && (
+                        {isLoading ? (
+                            <Skeleton variant="rounded" width="100%" height="100%" />
+                        ) : charts?.top_customers && (
                             <GenericChart
                                 type={charts.top_customers.chart_type}
                                 title={charts.top_customers.title}
@@ -252,12 +288,18 @@ const Dashboard = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     className="p-8 bg-card backdrop-blur-xl rounded-[2.5rem] border border-theme shadow-sm flex flex-col"
                 >
-                    <div className="mb-6">
-                        <h3 className="text-lg font-black text-main uppercase tracking-tight">Fleet Health</h3>
-                        <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">Asset Allocation</p>
+                    <div className="mb-6 space-y-2">
+                        <h3 className="text-lg font-black text-main uppercase tracking-tight">
+                            {isLoading ? <Skeleton width={120} height={20} /> : 'Fleet Health'}
+                        </h3>
+                        <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">
+                            {isLoading ? <Skeleton width={140} height={10} /> : 'Asset Allocation'}
+                        </p>
                     </div>
                     <div className="flex-1 min-h-[200px]">
-                        {charts?.fleet_availability && (
+                        {isLoading ? (
+                            <Skeleton variant="rounded" width="100%" height="100%" />
+                        ) : charts?.fleet_availability && (
                             <GenericChart
                                 type={charts.fleet_availability.chart_type}
                                 title={charts.fleet_availability.title}

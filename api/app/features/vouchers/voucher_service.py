@@ -22,8 +22,15 @@ class VoucherService:
     async def create_voucher(voucher_in: VoucherCreate) -> VoucherResponse:
         # Handle Auto-generation of Voucher Number
         if not voucher_in.voucher_number:
-            prefix = "INV" if voucher_in.voucher_type == VoucherType.INVOICE else "CHL"
-            if voucher_in.voucher_type == VoucherType.BILL: prefix = "BIL"
+            if voucher_in.voucher_type == VoucherType.INVOICE:
+                prefix = "INV"
+            elif voucher_in.voucher_type == VoucherType.QUOTATION:
+                prefix = "QTN"
+            elif voucher_in.voucher_type == VoucherType.BILL:
+                prefix = "BIL"
+            else:
+                prefix = "CHL" # For Challan
+            
             voucher_in.voucher_number = await IDGenerator.generate_voucher_number(prefix, TradeVoucher)
         
         # --- RECALCULATE TOTALS ---
@@ -66,7 +73,8 @@ class VoucherService:
         updated_voucher = await VoucherRepository.update(
             voucher_id, 
             status=voucher_update.status, 
-            notes=voucher_update.notes
+            notes=voucher_update.notes,
+            approved_by_id=voucher_update.approved_by_id
         )
         
         # 3. Apply Impact
@@ -128,13 +136,13 @@ class VoucherService:
         
         logger.info(f"Applied impact for Voucher {voucher.voucher_number} (Status: {voucher.status})")
 
-        # 3. Email Notification (for Invoice and Challan)
-        if voucher.voucher_type in [VoucherType.INVOICE, VoucherType.CHALLAN]:
+        # 3. Email Notification (for Invoice, Challan, and Quotation)
+        if voucher.voucher_type in [VoucherType.INVOICE, VoucherType.CHALLAN, VoucherType.QUOTATION]:
             # Fetch party for email address
             party = await PartyRepository.get_by_id(voucher.party_id)
             if party and party.email:
                 # Send email in background to not block the response
-                asyncio.create_task(VoucherEmailService.send_voucher_email(voucher, party))
+                asyncio.create_task(VoucherEmailService.send_voucher_email(voucher, party, voucher.approved_by_name))
                 logger.info(f"Background email task created for {party.email}")
 
     @staticmethod

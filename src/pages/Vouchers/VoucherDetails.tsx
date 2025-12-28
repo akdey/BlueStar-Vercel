@@ -18,10 +18,12 @@ import {
 } from 'lucide-react';
 import Badge from '../../components/Shared/Badge';
 import Button from '../../components/UI/Button';
-import { useUpdateVoucherMutation, useGetVoucherQuery } from '../../features/api/apiSlice';
+import { useUpdateVoucherMutation, useGetVoucherQuery, useGetPartyQuery } from '../../features/api/apiSlice';
 import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
 import PrintableVoucher from './PrintableVoucher';
+
+import Skeleton from '../../components/Shared/Skeleton';
 
 interface VoucherDetailsProps {
     voucherId: number | string;
@@ -40,11 +42,55 @@ const VoucherDetails: React.FC<VoucherDetailsProps> = ({ voucherId, onStatusChan
 
     const voucher = response?.data || response; // Handle different response wrappers if necessary
 
+    // Fetch party details to get the party name
+    const { data: partyResponse } = useGetPartyQuery(voucher?.party_id, {
+        skip: !voucher?.party_id
+    });
+
+    const partyName = partyResponse?.data?.name || voucher?.party_name || 'Unknown Party';
+
     if (isFetching) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-                <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Fetching Registry Details...</p>
+            <div className="space-y-8 animate-pulse">
+                {/* Header Skeleton */}
+                <div className="bg-gray-200 dark:bg-slate-800 rounded-[2.5rem] p-8 h-48 overflow-hidden relative">
+                    <Skeleton className="w-1/4 h-6 mb-6" variant="rounded" />
+                    <Skeleton className="w-1/2 h-10 mb-4" variant="rounded" />
+                    <div className="flex gap-4">
+                        <Skeleton className="w-24 h-4" variant="rounded" />
+                        <Skeleton className="w-24 h-4" variant="rounded" />
+                    </div>
+                </div>
+
+                {/* Info Card Skeleton */}
+                <div className="bg-card dark:bg-slate-900 border border-theme p-6 rounded-3xl h-32 flex gap-8">
+                    <div className="flex-1 space-y-4">
+                        <Skeleton className="w-20 h-3" variant="text" />
+                        <Skeleton className="w-40 h-6" variant="rounded" />
+                    </div>
+                    <div className="flex-1 space-y-4">
+                        <Skeleton className="w-20 h-3" variant="text" />
+                        <div className="grid grid-cols-2 gap-4">
+                            <Skeleton className="w-full h-8" variant="rounded" />
+                            <Skeleton className="w-full h-8" variant="rounded" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Table Skeleton */}
+                <div className="space-y-4">
+                    <Skeleton className="w-1/4 h-4" variant="text" />
+                    <div className="border border-theme rounded-3xl p-4 space-y-4">
+                        {[1, 2, 3].map(i => (
+                            <div key={i} className="flex justify-between items-center py-2 border-b border-theme last:border-0">
+                                <Skeleton className="w-1/3 h-8" variant="rounded" />
+                                <Skeleton className="w-16 h-8" variant="rounded" />
+                                <Skeleton className="w-20 h-8" variant="rounded" />
+                                <Skeleton className="w-24 h-8" variant="rounded" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
         );
     }
@@ -107,8 +153,8 @@ const VoucherDetails: React.FC<VoucherDetailsProps> = ({ voucherId, onStatusChan
                 </div>
                 <div className="flex justify-between items-start mb-6 relative z-10">
                     <div className="flex gap-2">
-                        <Badge variant={getDocTypeVariant(voucher.doc_type)}>
-                            {voucher.doc_type?.toUpperCase()}
+                        <Badge variant={getDocTypeVariant(voucher.voucher_type)}>
+                            {voucher.voucher_type?.toUpperCase()}
                         </Badge>
                         <Badge variant={voucher.status === 'issued' ? 'success' : 'neutral'}>
                             {voucher.status?.toUpperCase()}
@@ -143,7 +189,7 @@ const VoucherDetails: React.FC<VoucherDetailsProps> = ({ voucherId, onStatusChan
                 </div>
                 <div className="relative z-10">
                     <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60 italic mb-2">Authenticated Trade Voucher</p>
-                    <h2 className="text-3xl font-black tracking-tight mb-2 uppercase">{voucher.doc_number || 'AUTO-GEN-VCH'}</h2>
+                    <h2 className="text-3xl font-black tracking-tight mb-2 uppercase">{voucher.voucher_number || 'AUTO-GEN-VCH'}</h2>
                     <div className="flex items-center gap-4 text-xs font-bold text-gray-300 uppercase tracking-widest">
                         <span className="flex items-center gap-1.5"><Calendar size={14} className="text-primary" /> {new Date(voucher.voucher_date).toLocaleDateString()}</span>
                         <span className="w-1.5 h-1.5 rounded-full bg-slate-700" />
@@ -186,7 +232,7 @@ const VoucherDetails: React.FC<VoucherDetailsProps> = ({ voucherId, onStatusChan
                     <div className="space-y-6 border-r border-theme pr-8">
                         {sectionHeader(<User size={14} className="text-primary" />, "Billed Party Account")}
                         <div>
-                            <p className="text-lg font-black text-main dark:text-white uppercase tracking-tight">{voucher.party_name}</p>
+                            <p className="text-lg font-black text-main dark:text-white uppercase tracking-tight">{partyName}</p>
                             <p className="text-xs font-bold text-muted italic">Account ID: {voucher.party_id}</p>
                         </div>
                     </div>
@@ -210,49 +256,79 @@ const VoucherDetails: React.FC<VoucherDetailsProps> = ({ voucherId, onStatusChan
                                 <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted">Description</th>
                                 <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted text-center">Qty</th>
                                 <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted text-right">Rate</th>
+                                <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted text-right">Tax</th>
                                 <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted text-right">Amount</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y border-theme">
-                            {voucher.items?.map((item: any, idx: number) => (
-                                <tr key={idx} className="group hover:bg-main-hover/50 transition-colors">
-                                    <td className="px-4 py-4">
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-black text-main dark:text-gray-100">{item.item_name || 'System Product'}</span>
-                                            <span className="text-[10px] text-muted font-mono tracking-tighter uppercase italic">SKU-ID: {item.item_id}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-4 text-center">
-                                        <span className="text-xs font-bold bg-main-hover px-2 py-1 rounded-lg">{item.quantity}</span>
-                                    </td>
-                                    <td className="px-4 py-4 text-right">
-                                        <span className="text-xs font-bold text-muted">₹{item.rate.toLocaleString()}</span>
-                                    </td>
-                                    <td className="px-4 py-4 text-right">
-                                        <span className="text-sm font-black text-primary">₹{item.amount.toLocaleString()}</span>
-                                    </td>
-                                </tr>
-                            ))}
+                            {voucher.items?.map((item: any, idx: number) => {
+                                const amount = Number(item.amount) || 0;
+                                const taxRate = Number(item.tax_rate) || 0;
+                                const taxAmount = (amount * taxRate) / 100;
+
+                                return (
+                                    <tr key={idx} className="group hover:bg-main-hover/50 transition-colors">
+                                        <td className="px-4 py-4">
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-black text-main dark:text-gray-100">{item.item_name || 'System Product'}</span>
+                                                <span className="text-[10px] text-muted font-mono tracking-tighter uppercase italic">SKU-ID: {item.item_id}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-4 text-center">
+                                            <span className="text-xs font-bold bg-main-hover px-2 py-1 rounded-lg">{item.quantity}</span>
+                                        </td>
+                                        <td className="px-4 py-4 text-right">
+                                            <span className="text-xs font-bold text-muted">₹{Number(item.rate).toLocaleString()}</span>
+                                        </td>
+                                        <td className="px-4 py-4 text-right">
+                                            <div className="flex flex-col items-end">
+                                                <span className="text-xs font-bold text-primary">₹{taxAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                                                <span className="text-[9px] text-muted font-black">({taxRate}%)</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-4 text-right">
+                                            <span className="text-sm font-black text-primary">₹{amount.toLocaleString()}</span>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
 
                 {/* Total Summary */}
                 <div className="mt-8 flex justify-end">
-                    <div className="w-full sm:w-64 space-y-3">
-                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted">
-                            <span>Subtotal</span>
-                            <span className="text-main dark:text-white">₹{voucher.total_amount?.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted pb-3 border-b border-theme">
-                            <span>Tax (Calculated)</span>
-                            <span className="text-main dark:text-white">₹0.00</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-primary">Grand Total</span>
-                            <span className="text-2xl font-black text-gray-900 dark:text-white">₹{voucher.total_amount?.toLocaleString()}</span>
-                        </div>
-                    </div>
+                    {(() => {
+                        const items = voucher.items || [];
+                        const round = (num: number) => Math.round((num + Number.EPSILON) * 100) / 100;
+                        let subTotal = 0;
+                        let totalTax = 0;
+                        items.forEach((item: any) => {
+                            const amount = Number(item.amount) || 0;
+                            const taxRate = Number(item.tax_rate) || 0;
+                            const taxAmount = round((amount * taxRate) / 100);
+                            subTotal += amount;
+                            totalTax += taxAmount;
+                        });
+                        const grandTotal = round(subTotal + totalTax);
+
+                        return (
+                            <div className="w-full sm:w-64 space-y-3">
+                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted">
+                                    <span>Subtotal</span>
+                                    <span className="text-main dark:text-white">₹{subTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted pb-3 border-b border-theme">
+                                    <span>Total Tax</span>
+                                    <span className="text-main dark:text-white">₹{totalTax.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[11px] font-black uppercase tracking-[0.2em] text-primary">Grand Total</span>
+                                    <span className="text-2xl font-black text-gray-900 dark:text-white">₹{grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                </div>
+                            </div>
+                        );
+                    })()}
                 </div>
             </section>
 

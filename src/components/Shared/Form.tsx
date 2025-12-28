@@ -87,7 +87,7 @@ export const Select: React.FC<SelectProps> = ({
     error,
     tooltip,
     registration,
-    placeholder,
+    placeholder = "Select an option",
     className = "",
     ...props
 }) => {
@@ -96,6 +96,7 @@ export const Select: React.FC<SelectProps> = ({
             <select
                 {...registration}
                 {...props}
+                defaultValue=""
                 className={`
                     w-full px-4 py-2.5 
                     bg-white/80 dark:bg-slate-800/50 
@@ -122,7 +123,7 @@ export const Select: React.FC<SelectProps> = ({
                     paddingRight: '2.5rem'
                 }}
             >
-                {placeholder && <option value="">{placeholder}</option>}
+                <option value="" disabled>{placeholder}</option>
                 {options.map((opt) => (
                     <option key={opt.value} value={opt.value}>
                         {opt.label}

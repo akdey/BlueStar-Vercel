@@ -63,11 +63,11 @@ const PrintableVoucher: React.FC<PrintableVoucherProps> = ({ voucher }) => {
             accent: 'text-slate-600',
             border: 'border-slate-800',
             lightBg: 'bg-slate-50',
-            label: voucher.doc_type || 'Voucher'
+            label: voucher.voucher_type || 'Voucher'
         };
     };
 
-    const theme = getTheme(voucher.doc_type);
+    const theme = getTheme(voucher.voucher_type);
 
     // Calculate Financials on the fly for display
     const calculateFinancials = () => {
@@ -120,7 +120,7 @@ const PrintableVoucher: React.FC<PrintableVoucherProps> = ({ voucher }) => {
                         <div className={`inline-block px-4 py-1.5 rounded-lg ${theme.primary} text-white font-bold text-sm uppercase tracking-widest shadow-md mb-2`}>
                             {theme.label}
                         </div>
-                        <p className="text-sm font-bold text-slate-400">#{voucher.doc_number || 'TRP-DRAFT'}</p>
+                        <p className="text-sm font-bold text-slate-400">#{voucher.voucher_number || 'TRP-DRAFT'}</p>
                     </div>
                 </div>
 
@@ -305,10 +305,16 @@ const PrintableVoucher: React.FC<PrintableVoucherProps> = ({ voucher }) => {
                         </div>
 
                         {/* Signature Area */}
-                        <div className="mt-12 text-center">
-                            <p className="text-[9px] font-bold text-slate-900 uppercase tracking-widest mb-16">For Blue Star Trading & Co.</p>
-                            <div className="h-px bg-slate-300 w-full mb-2"></div>
-                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Authorized Signatory</p>
+                        <div className="mt-12 text-right">
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-bold text-slate-900 uppercase tracking-tight">Authorized Signatory For</p>
+                                <p className="text-[12px] font-black text-slate-900 uppercase tracking-wider mb-8">BLUE STAR TRADING & CO.</p>
+
+                                <div className="pt-8">
+                                    <p className="text-[11px] font-bold text-slate-900 uppercase">{voucher.approved_by_name}</p>
+                                    <p className="text-[9px] font-bold text-slate-400 italic mt-1">Digitally Signed Document</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

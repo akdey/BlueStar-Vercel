@@ -36,6 +36,7 @@ class TradeVoucher(Base):
     grand_total: Mapped[float] = mapped_column(Float, default=0.0)
     
     status: Mapped[VoucherStatus] = mapped_column(Enum(VoucherStatus), default=VoucherStatus.DRAFT)
+    approved_by_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"))
     notes: Mapped[Optional[str]] = mapped_column(String(500))
     
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
@@ -43,6 +44,16 @@ class TradeVoucher(Base):
 
     # Relationship to items
     items: Mapped[List["VoucherItem"]] = relationship("VoucherItem", back_populates="voucher", cascade="all, delete-orphan")
+    
+    # Relationship to Approver (User)
+    approver: Mapped[Optional["User"]] = relationship("User", foreign_keys=[approved_by_id])
+
+    @property
+    def approved_by_name(self) -> Optional[str]:
+        # Now safe because we use joinedload in Repository
+        if self.approver:
+            return self.approver.full_name or self.approver.username
+        return None
 
 class VoucherItem(Base):
     __tablename__ = "voucher_items"

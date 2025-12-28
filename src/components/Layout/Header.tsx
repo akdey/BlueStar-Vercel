@@ -1,31 +1,18 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, LogIn, Moon, Sun, Bell } from 'lucide-react';
+import { Menu, X, LogIn, Moon, Sun } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../UI/Button';
 import Logo from '../UI/Logo';
 import { useTheme } from '../../context/ThemeContext';
-import NotificationPanel from '../Shared/NotificationPanel';
-import { useGetNotificationsQuery } from '../../features/api/apiSlice';
 import { useAppSelector } from '../../store/hooks';
 
 export default function Header() {
     const [isOpen, setIsOpen] = useState(false);
-    const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const { theme, toggleTheme } = useTheme();
     const navigate = useNavigate();
     const user = useAppSelector((state) => state.auth.user);
-
-    // Only fetch if user is logged in
-    const { data: notificationsData } = useGetNotificationsQuery({ unread_only: true }, {
-        skip: !user
-    });
-
-    // API returns array directly, not wrapped in data property
-    const unreadCount = Array.isArray(notificationsData)
-        ? notificationsData.filter((n: any) => !n.is_read).length
-        : (notificationsData?.data?.length || 0);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -80,21 +67,6 @@ export default function Header() {
                     >
                         {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
                     </motion.button>
-
-                    {user && (
-                        <motion.button
-                            whileHover={{ scale: 1.1, rotate: 10 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => setIsNotificationOpen(true)}
-                            className="relative p-2 rounded-full border border-theme text-main dark:text-slate-200 hover:bg-main-hover transition-all"
-                            aria-label="Notifications"
-                        >
-                            <Bell size={18} />
-                            {unreadCount > 0 && (
-                                <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border border-white dark:border-slate-900" />
-                            )}
-                        </motion.button>
-                    )}
 
                     <motion.button
                         whileHover={{ scale: 1.05 }}
@@ -166,9 +138,6 @@ export default function Header() {
                     </motion.div>
                 )}
             </AnimatePresence>
-
-            {/* Notification Panel */}
-            <NotificationPanel isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} />
         </header>
     );
 }

@@ -30,7 +30,9 @@ interface VoucherFormProps {
 }
 
 const itemSchema = yup.object({
-    item_id: yup.number().required('Required'),
+    item_id: yup.number()
+        .transform((value, originalValue) => originalValue === '' ? undefined : value)
+        .required('Required'),
     quantity: yup.number().min(0.01, '> 0').required('Required'),
     rate: yup.number().min(0, 'Min 0').required('Required'),
     tax_rate: yup.number().default(0),
@@ -41,7 +43,9 @@ const voucherSchema = yup.object({
     voucher_number: yup.string().optional().nullable(),
     voucher_type: yup.string().oneOf(['challan', 'invoice', 'bill', 'quotation']).required('Type is required'),
     voucher_date: yup.string().required('Date is required'),
-    party_id: yup.number().required('Party is required'),
+    party_id: yup.number()
+        .transform((value, originalValue) => originalValue === '' ? undefined : value)
+        .required('Party is required'),
     vehicle_number: yup.string().optional().nullable(),
     driver_name: yup.string().optional().nullable(),
     place_of_supply: yup.string().optional().nullable(),
@@ -59,7 +63,8 @@ const VoucherForm: React.FC<VoucherFormProps> = ({ onSuccess }) => {
             voucher_type: 'challan',
             voucher_date: new Date().toISOString().split('T')[0],
             status: 'draft',
-            items: [{ item_id: 0, quantity: 1, rate: 0, tax_rate: 0, amount: 0 }]
+            party_id: undefined,
+            items: [{ item_id: undefined as any, quantity: 1, rate: 0, tax_rate: 0, amount: 0 }]
         }
     });
 
@@ -173,10 +178,11 @@ const VoucherForm: React.FC<VoucherFormProps> = ({ onSuccess }) => {
                     />
                     <Select
                         label="Party / Customer"
-                        registration={register('party_id' as any)}
+                        registration={register('party_id', { valueAsNumber: true })}
                         error={errors.party_id?.message}
                         required
                         options={parties?.data?.map((p: any) => ({ value: p.id, label: `${p.name} (${p.code})` })) || []}
+                        placeholder="Select a party/customer"
                         tooltip="The business partner associated with this transaction."
                     />
                 </div>
@@ -240,6 +246,7 @@ const VoucherForm: React.FC<VoucherFormProps> = ({ onSuccess }) => {
                                     <Select
                                         label={index === 0 ? "Select Product" : ""}
                                         registration={register(`items.${index}.item_id` as any, {
+                                            valueAsNumber: true,
                                             onChange: (e) => {
                                                 const itemId = Number(e.target.value);
                                                 const selected = inventoryItems?.data?.find((i: any) => i.id === itemId);
@@ -250,6 +257,7 @@ const VoucherForm: React.FC<VoucherFormProps> = ({ onSuccess }) => {
                                             }
                                         })}
                                         options={inventoryItems?.data?.map((i: any) => ({ value: i.id, label: i.name })) || []}
+                                        placeholder="Choose an item"
                                         error={errors.items?.[index]?.item_id?.message}
                                     />
                                 </div>
@@ -271,9 +279,13 @@ const VoucherForm: React.FC<VoucherFormProps> = ({ onSuccess }) => {
                                     />
                                 </div>
                                 <div className="col-span-3 sm:col-span-3">
-                                    <div className="flex flex-col space-y-1.5">
-                                        {index === 0 && <label className="text-xs font-bold text-gray-700 dark:text-gray-300">Amount</label>}
-                                        <div className="h-10 flex items-center px-3 rounded-2xl bg-gray-100 dark:bg-slate-800 text-xs font-black text-primary dark:text-white">
+                                    <div className="mb-4">
+                                        {index === 0 && (
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5">
+                                                Amount
+                                            </label>
+                                        )}
+                                        <div className={`h-10 flex items-center px-4 rounded-xl bg-gray-100 dark:bg-slate-800 text-xs font-black text-primary dark:text-white border border-gray-200 dark:border-slate-700 ${index === 0 ? '' : 'mt-[30px]'}`}>
                                             ₹{(items[index]?.amount || 0).toLocaleString()}
                                         </div>
                                     </div>

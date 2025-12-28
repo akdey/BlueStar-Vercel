@@ -156,7 +156,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSuccess }) => {
                             error={errors.voucher_id?.message}
                             options={vouchers?.data?.map((v: any) => ({
                                 value: v.id,
-                                label: `${v.doc_type?.toUpperCase()}: ${v.doc_number || v.id}`
+                                label: `${v.voucher_type?.toUpperCase()}: ${v.voucher_number || v.id}`
                             })) || []}
                             placeholder={selectedPartyId ? "Optional: Search Bills/Challans" : "Select Party First"}
                             disabled={!selectedPartyId}
