@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import PageHeader from '../../components/Shared/PageHeader';
+import Button from '../../components/UI/Button';
 import DataTable from '../../components/Shared/DataTable';
 import SlideOver from '../../components/Shared/SlideOver';
 import TransactionForm from './TransactionForm';
@@ -117,15 +118,15 @@ const Transactions = () => {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <PageHeader title="Financial Ledger" />
-                <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                <Button
                     onClick={() => setIsFormOpen(true)}
-                    className="group relative inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-primary to-secondary text-white text-[10px] font-bold uppercase tracking-[0.2em] rounded-xl shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 font-display"
+                    variant="primary"
+                    rounded="xl"
+                    className="gap-2 px-6 py-2.5 shadow-lg shadow-primary/20"
                 >
-                    <PlusCircle size={16} className="transition-transform group-hover:rotate-90" />
+                    <PlusCircle size={16} />
                     <span>Record Post Entry</span>
-                </motion.button>
+                </Button>
             </div>
 
             {/* Financial Overview - Simplified for now */}

@@ -29,6 +29,7 @@ class User(Base):
     last_ip: Mapped[Optional[str]] = mapped_column(String(45))
     failed_login_attempts: Mapped[int] = mapped_column(default=0)
     lockout_until: Mapped[Optional[datetime]] = mapped_column(DateTime)
+    telegram_chat_id: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 

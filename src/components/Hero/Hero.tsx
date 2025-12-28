@@ -33,7 +33,7 @@ export default function Hero() {
     return (
         <section
             ref={containerRef}
-            className="relative h-screen flex flex-col items-center justify-center overflow-hidden bg-main pt-16 transition-colors duration-700"
+            className="relative h-screen flex flex-col items-center justify-center overflow-hidden bg-main pt-16 pb-20 md:pb-0 transition-colors duration-700"
         >
             <Aurora />
 

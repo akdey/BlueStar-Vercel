@@ -14,6 +14,7 @@ type Props = {
     onClick?: () => void;
     type?: 'button' | 'submit';
     rounded?: 'full' | 'xl' | '2xl';
+    disabled?: boolean;
 };
 
 export default function Button({
@@ -22,7 +23,8 @@ export default function Button({
     className,
     onClick,
     type = 'button',
-    rounded = 'full'
+    rounded = 'full',
+    disabled = false
 }: Props) {
     const variants = {
         primary: 'bg-gradient-primary text-white shadow-lg shadow-primary/25 border border-white/10 hover:bg-gradient-hover',
@@ -41,15 +43,17 @@ export default function Button({
     return (
         <motion.button
             type={type}
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
+            disabled={disabled}
+            whileHover={disabled ? {} : { scale: 1.02, y: -2 }}
+            whileTap={disabled ? {} : { scale: 0.98 }}
             className={cn(
                 'px-8 py-3 font-heading font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-2',
                 variants[variant],
                 roundedClasses[rounded],
+                disabled && 'opacity-50 cursor-not-allowed hover:bg-none hover:brightness-100 hover:scale-100 hover:y-0 shadow-none',
                 className
             )}
-            onClick={onClick}
+            onClick={disabled ? undefined : onClick}
         >
             {children}
         </motion.button>

@@ -94,7 +94,7 @@ const Dashboard = () => {
                             variant={period === p ? 'primary' : 'glass'}
                             onClick={() => setPeriod(p)}
                             rounded="lg"
-                            className={`px-4 py-2 border-none shadow-none text-[10px] track-widest h-auto ${period !== p ? 'dark:text-gray-400 text-gray-500' : ''}`}
+                            className={`px-4 py-2 border-none shadow-none text-[10px] track-widest h-auto font-bold ${period !== p ? 'dark:text-gray-400 text-slate-600 hover:bg-white/50 dark:hover:bg-slate-700/50' : 'text-white shadow-md'}`}
                         >
                             {p}
                         </Button>

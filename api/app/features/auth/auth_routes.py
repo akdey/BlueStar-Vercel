@@ -10,10 +10,8 @@ async def login(request: Request):
     data = await request.json()
     username = data.get("username")
     password = data.get("password")
-    
     client_host = request.client.host if request.client else None
     result = await AuthService.login_user(username, password, ip_address=client_host)
-    
     # Extract token
     token = result.get("access_token")
     

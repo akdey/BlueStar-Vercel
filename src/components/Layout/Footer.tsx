@@ -12,12 +12,12 @@ export default function Footer() {
                     <p className="text-slate-300 leading-relaxed">
                         We move your goods, we drive your growth. Your reliable partner in transport and trading.
                     </p>
-                    <div className="flex gap-4">
+                    {/* <div className="flex gap-4">
                         <SocialIcon icon={<Facebook size={18} />} href="#" />
                         <SocialIcon icon={<Twitter size={18} />} href="#" />
                         <SocialIcon icon={<Linkedin size={18} />} href="#" />
                         <SocialIcon icon={<Instagram size={18} />} href="#" />
-                    </div>
+                    </div> */}
                 </div>
 
                 {/* Quick Links */}
@@ -48,15 +48,15 @@ export default function Footer() {
                     <ul className="space-y-4 text-slate-300">
                         <li className="flex items-start gap-3">
                             <MapPin className="text-accent shrink-0" size={20} />
-                            <span>Srirampur, Ratulia, Paschim Medinipur, 721139</span>
+                            <span>{import.meta.env.VITE_COMPANY_ADDRESS}</span>
                         </li>
                         <li className="flex items-center gap-3">
                             <Phone className="text-accent shrink-0" size={20} />
-                            <span>+91 7001031322</span>
+                            <span>{import.meta.env.VITE_COMPANY_PHONE}</span>
                         </li>
                         <li className="flex items-center gap-3">
                             <Mail className="text-accent shrink-0" size={20} />
-                            <span className="break-all">bluestartradingandco@gmail.com</span>
+                            <span className="break-all">{import.meta.env.VITE_COMPANY_EMAIL}</span>
                         </li>
                     </ul>
                 </div>

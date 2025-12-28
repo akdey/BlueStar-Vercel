@@ -204,3 +204,52 @@ class UserRepository:
                 logger.error(f"Error locking out user {user_id}: {str(e)}")
                 await db.rollback()
                 raise
+    @staticmethod
+    async def get_admins_with_telegram() -> List[str]:
+        """Fetch all chat IDs for admins who have a telegram_chat_id set."""
+        async with SessionLocal() as db:
+            from app.features.users.user_entity import UserRole
+            try:
+                # Assuming UserRole.ADMIN is the role to notify
+                result = await db.execute(
+                    select(User.telegram_chat_id)
+                    .where(User.role == UserRole.ADMIN, User.telegram_chat_id.is_not(None))
+                )
+                chat_ids = result.scalars().all()
+                return [cid for cid in chat_ids if cid] # Filter out any empty strings if they slipped in
+            except Exception as e:
+                logger.error(f"Error fetching admin telegram IDs: {str(e)}")
+                return []
+    
+    @staticmethod
+    async def link_telegram_user(phone_number: str, chat_id: str) -> bool:
+        """Link a telegram chat_id to a user found by phone number."""
+        async with SessionLocal() as db:
+            try:
+                # Standardize phone number? Assuming exact match for now or basic strip
+                # User.phone_number usually stored as is.
+                # Let's try to match partial or exact. 
+                # For safety, exact match on the stored phone field.
+                result = await db.execute(select(User).where(User.phone_number == phone_number))
+                user = result.scalar_one_or_none()
+                if not user:
+                    return False
+                
+                user.telegram_chat_id = chat_id
+                await db.commit()
+                logger.info(f"Linked Telegram Chat ID {chat_id} to User {user.username}")
+                return True
+            except Exception as e:
+                logger.error(f"Error linking telegram user: {str(e)}")
+                return False
+    
+    @staticmethod
+    async def get_by_telegram_chat_id(chat_id: str):
+        """Get user by their Telegram chat ID."""
+        async with SessionLocal() as db:
+            try:
+                result = await db.execute(select(User).where(User.telegram_chat_id == chat_id))
+                return result.scalar_one_or_none()
+            except Exception as e:
+                logger.error(f"Error fetching user by telegram chat ID: {str(e)}")
+                return None

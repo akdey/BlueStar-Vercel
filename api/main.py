@@ -19,6 +19,8 @@ from app.features.fleet.fleet_routes import router as fleet_router
 from app.features.trips.trip_routes import router as trip_router
 from app.features.dashboard.dashboard_routes import router as dashboard_router
 from app.features.chat.chat_routes import router as chat_router
+from app.features.notifications.notification_routes import router as notification_router
+from app.features.notifications.telegram_routes import router as telegram_router
 from app.core.exceptions import (
     http_exception_handler,
     validation_exception_handler,
@@ -77,6 +79,8 @@ app.include_router(fleet_router, prefix="/api")
 app.include_router(trip_router, prefix="/api")
 app.include_router(dashboard_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
+app.include_router(notification_router, prefix="/api")
+app.include_router(telegram_router, prefix="/api")
 
 if __name__ == "__main__":
     import uvicorn

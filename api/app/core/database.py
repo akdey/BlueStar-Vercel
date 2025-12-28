@@ -23,6 +23,7 @@ async def init_db():
         from app.features.documents.document_entity import TradeDocument, DocumentItem
         from app.features.fleet.fleet_entity import Vehicle, Driver
         from app.features.trips.trip_entity import Trip, TripExpense
+        from app.features.notifications.notification_entity import Notification
         await conn.run_sync(Base.metadata.create_all)
 
 async def get_db():

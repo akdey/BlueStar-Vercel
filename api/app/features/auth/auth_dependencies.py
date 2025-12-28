@@ -25,3 +25,21 @@ async def get_admin_user(request: Request) -> dict:
             detail="Admin access required"
         )
     return user
+
+async def get_current_active_user(request: Request):
+    """
+    Get full User entity from DB based on ID in token.
+    """
+    user_payload = await get_current_user(request)
+    user_id = user_payload.get("id")
+    
+    from app.features.users.user_repository import UserRepository
+    user = await UserRepository.get_by_id(user_id)
+    
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+        
+    if not user.active:
+        raise HTTPException(status_code=400, detail="Inactive user")
+        
+    return user

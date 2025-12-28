@@ -3,7 +3,7 @@ import { setCredentials, logout as logoutAction } from '../auth/authSlice';
 import { toast } from 'react-toastify';
 
 const baseQuery = fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
+    baseUrl: import.meta.env.VITE_API_BASE_URL,
     prepareHeaders: (headers, { getState }) => {
         const token = (getState() as { auth: { token: string | null } }).auth.token;
         const persistedToken = token || sessionStorage.getItem('access_token');
@@ -26,36 +26,22 @@ const baseQueryWithReauth: typeof baseQuery = async (args, api, extraOptions) =>
     }
 
     // Check for token in headers (Refreshed token pattern)
-    // Adjust header name 'x-access-token' or 'authorization' based on explicit backend behavior.
-    // User mentioned "access token is on header". Usually 'x-access-token' or 'Authorization'.
-    // We will check both commonly used headers for new tokens.
     const responseHeaders = result.meta?.response?.headers;
     if (responseHeaders) {
         const newToken = responseHeaders.get('x-access-token') || responseHeaders.get('authorization');
 
         if (newToken) {
-            // Clean "Bearer " prefix if present in the header value
             const pureToken = newToken.replace('Bearer ', '');
-
-            // Get current user from the store to preserve it during token refresh
             let userToDispatch = (api.getState() as { auth: { user: any } }).auth.user;
 
-            // If userToDispatch is null (e.g., during initial login),
-            // try to extract user data from the response body (result.data).
             if (!userToDispatch && result.data) {
                 const data: any = result.data;
-
-                // CRITICAL: If password change is required, do NOT auto-dispatch credentials.
-                // This prevents the user from being "logged in" via sessionStorage/Redux state
-                // before they have completed the forced password change.
                 if (data.password_change_required === true || data.data?.password_change_required === true) {
                     return result;
                 }
-
                 userToDispatch = data.user || data.data?.user || data;
             }
 
-            // Dispatch setCredentials with the new token and the determined user data.
             api.dispatch(setCredentials({
                 token: pureToken,
                 user: userToDispatch
@@ -348,6 +334,43 @@ export const apiSlice = createApi({
                 body: chatData,
             }),
         }),
+
+        // Notifications
+        getNotifications: builder.query({
+            query: (params) => ({
+                url: '/notifications/',
+                params,
+            }),
+        }),
+        markNotificationRead: builder.mutation({
+            query: (id) => ({
+                url: `/notifications/${id}/read`,
+                method: 'POST',
+            }),
+            onQueryStarted: async (id, { dispatch, queryFulfilled }) => {
+                const patchResult = dispatch(
+                    apiSlice.util.updateQueryData('getNotifications', { unread_only: false }, (draft: any) => {
+                        const notification = draft?.data?.find((n: any) => n.id === id);
+                        if (notification) {
+                            notification.is_read = true;
+                        }
+                    })
+                );
+                const patchResultUnread = dispatch(
+                    apiSlice.util.updateQueryData('getNotifications', { unread_only: true }, (draft: any) => {
+                        if (draft && draft.data) {
+                            draft.data = draft.data.filter((n: any) => n.id !== id);
+                        }
+                    })
+                );
+                try {
+                    await queryFulfilled;
+                } catch {
+                    patchResult.undo();
+                    patchResultUnread.undo();
+                }
+            },
+        }),
     }),
 });
 
@@ -391,4 +414,6 @@ export const {
     useGetTransactionsByPartyQuery,
     useCreateTransactionMutation,
     useSendChatMessageMutation,
+    useGetNotificationsQuery,
+    useMarkNotificationReadMutation,
 } = apiSlice;

@@ -31,7 +31,6 @@ class AuthService:
     async def login_user(username: str, password: str, ip_address: str = None) -> dict:
         from datetime import datetime, timedelta, timezone
         from app.core.config import settings
-
         user = await UserRepository.get_by_username(username)
         # 1. User not found -> Don't reveal account existence, generic error
         if not user:
@@ -41,7 +40,6 @@ class AuthService:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid username or password"
             )
-
         # 2. Check Lockout - using timezone-aware usage
         if user.lockout_until:
             # Add timezone info to now() if lockout_until is timezone aware
@@ -58,7 +56,6 @@ class AuthService:
                  # Lockout expired, perform reset inside login flow or here
                  # We rely on successful login to reset, or reset explicitly
                  pass
-
         # 3. Verify Password
         if not AuthHelper.verify_password(password, user.hashed_password):
             logger.warning(f"Failed login attempt for username: {username}")
@@ -84,7 +81,6 @@ class AuthService:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid username or password"
             )
-        
         # 4. Check active status
         if not user.active:
             raise HTTPException(
