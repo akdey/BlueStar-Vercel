@@ -30,7 +30,7 @@ const StatCard = ({ title, value, icon: Icon, trend, color, accentColor }: any) 
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ y: -5, transition: { duration: 0.2 } }}
             onMouseMove={handleMouseMove}
-            className="relative overflow-hidden group p-6 bg-white dark:bg-slate-900/50 backdrop-blur-md rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm transition-all duration-300"
+            className="relative overflow-hidden group p-6 bg-card dark:bg-slate-900/50 backdrop-blur-md rounded-2xl border border-theme shadow-sm transition-all duration-300"
         >
             {/* Base Static Glow */}
             <div className={`absolute -right-8 -top-8 w-32 h-32 rounded-full opacity-10 group-hover:opacity-20 transition-opacity blur-3xl ${accentColor}`} />
@@ -57,8 +57,8 @@ const StatCard = ({ title, value, icon: Icon, trend, color, accentColor }: any) 
             </div>
 
             <div className="mt-6 relative z-10">
-                <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-1">{title}</p>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white font-display tracking-tight">
+                <p className="text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-1">{title}</p>
+                <h3 className="text-2xl font-black text-main dark:text-white font-display tracking-tight">
                     {value}
                 </h3>
             </div>
@@ -79,25 +79,36 @@ const Dashboard = () => {
             {/* Header Area */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white font-display tracking-tight leading-none">
+                    <h1 className="text-3xl font-bold text-main font-display tracking-tight leading-none">
                         Dashboard <span className="text-primary/50 dark:text-accent/50 text-xl font-normal">Overview</span>
                     </h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm font-medium">
+                    <p className="text-muted mt-2 text-sm font-medium">
                         Welcome back, <span className="text-primary dark:text-accent font-black">{user?.full_name || user?.username || 'Commander'}</span>! Here's your transport operational status.
                     </p>
                 </div>
 
-                <div className="flex bg-gray-100/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl p-1 border border-gray-200/50 dark:border-slate-700/50">
+                <div className="flex bg-main-hover/50 dark:bg-slate-800/40 backdrop-blur-md rounded-[1rem] p-1 border border-theme relative">
                     {['today', 'week', 'month'].map((p) => (
-                        <Button
+                        <button
                             key={p}
-                            variant={period === p ? 'primary' : 'glass'}
                             onClick={() => setPeriod(p)}
-                            rounded="lg"
-                            className={`px-4 py-2 border-none shadow-none text-[10px] track-widest h-auto font-bold ${period !== p ? 'dark:text-gray-400 text-slate-600 hover:bg-white/50 dark:hover:bg-slate-700/50' : 'text-white shadow-md'}`}
+                            className={`
+                                relative px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 z-10 min-w-[90px]
+                                ${period === p
+                                    ? 'text-white'
+                                    : 'text-muted hover:text-main'
+                                }
+                            `}
                         >
-                            {p}
-                        </Button>
+                            <span className="relative z-10">{p}</span>
+                            {period === p && (
+                                <motion.div
+                                    layoutId="activePeriod"
+                                    className="absolute inset-0 bg-gradient-primary rounded-xl shadow-[0_10px_20px_-5px_rgba(var(--primary),0.4)]"
+                                    transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                                />
+                            )}
+                        </button>
                     ))}
                 </div>
             </div>
@@ -106,7 +117,7 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {isLoading ? (
                     [1, 2, 3, 4].map(i => (
-                        <div key={i} className="h-40 bg-white/50 dark:bg-slate-900/30 backdrop-blur-sm rounded-2xl border border-gray-100 dark:border-slate-800 animate-pulse" />
+                        <div key={i} className="h-40 bg-card/50 backdrop-blur-sm rounded-2xl border border-theme animate-pulse" />
                     ))
                 ) : (
                     <>
@@ -150,12 +161,12 @@ const Dashboard = () => {
                 <motion.div
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="lg:col-span-2 p-8 bg-white dark:bg-slate-900/50 backdrop-blur-xl rounded-[2.5rem] border border-gray-100 dark:border-slate-800 shadow-sm min-h-[400px] flex flex-col"
+                    className="lg:col-span-2 p-8 bg-card backdrop-blur-xl rounded-[2.5rem] border border-theme shadow-sm min-h-[400px] flex flex-col"
                 >
                     <div className="flex items-center justify-between mb-8">
                         <div>
-                            <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Revenue Stream</h3>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-1">Daily Sales Momentum</p>
+                            <h3 className="text-xl font-black text-main uppercase tracking-tight">Revenue Stream</h3>
+                            <p className="text-[10px] text-muted font-bold uppercase tracking-[0.2em] mt-1">Daily Sales Momentum</p>
                         </div>
                         <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
                             <TrendingUp size={20} />
@@ -176,11 +187,11 @@ const Dashboard = () => {
                 <motion.div
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="p-8 bg-white dark:bg-slate-900/50 backdrop-blur-xl rounded-[2.5rem] border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col"
+                    className="p-8 bg-card backdrop-blur-xl rounded-[2.5rem] border border-theme shadow-sm flex flex-col"
                 >
                     <div className="mb-6">
-                        <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">Deployment</h3>
-                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Trip Status Breakdown</p>
+                        <h3 className="text-lg font-black text-main uppercase tracking-tight">Deployment</h3>
+                        <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">Trip Status Breakdown</p>
                     </div>
                     <div className="flex-1 min-h-[200px]">
                         {charts?.trip_status && (
@@ -197,11 +208,11 @@ const Dashboard = () => {
                 <motion.div
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="p-8 bg-white dark:bg-slate-900/50 backdrop-blur-xl rounded-[2.5rem] border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col"
+                    className="p-8 bg-card backdrop-blur-xl rounded-[2.5rem] border border-theme shadow-sm flex flex-col"
                 >
                     <div className="mb-6">
-                        <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">Operational Burn</h3>
-                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Logistics Expenses</p>
+                        <h3 className="text-lg font-black text-main uppercase tracking-tight">Operational Burn</h3>
+                        <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">Logistics Expenses</p>
                     </div>
                     <div className="flex-1 min-h-[200px]">
                         {charts?.expense_breakdown && (
@@ -218,11 +229,11 @@ const Dashboard = () => {
                 <motion.div
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="p-8 bg-white dark:bg-slate-900/50 backdrop-blur-xl rounded-[2.5rem] border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col"
+                    className="p-8 bg-card backdrop-blur-xl rounded-[2.5rem] border border-theme shadow-sm flex flex-col"
                 >
                     <div className="mb-6">
-                        <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">Top Partners</h3>
-                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Outstanding Balance</p>
+                        <h3 className="text-lg font-black text-main uppercase tracking-tight">Top Partners</h3>
+                        <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">Outstanding Balance</p>
                     </div>
                     <div className="flex-1 min-h-[200px]">
                         {charts?.top_customers && (
@@ -239,11 +250,11 @@ const Dashboard = () => {
                 <motion.div
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="p-8 bg-white dark:bg-slate-900/50 backdrop-blur-xl rounded-[2.5rem] border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col"
+                    className="p-8 bg-card backdrop-blur-xl rounded-[2.5rem] border border-theme shadow-sm flex flex-col"
                 >
                     <div className="mb-6">
-                        <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">Fleet Health</h3>
-                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Asset Allocation</p>
+                        <h3 className="text-lg font-black text-main uppercase tracking-tight">Fleet Health</h3>
+                        <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">Asset Allocation</p>
                     </div>
                     <div className="flex-1 min-h-[200px]">
                         {charts?.fleet_availability && (
@@ -260,17 +271,17 @@ const Dashboard = () => {
                 <motion.div
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="lg:col-span-3 p-8 bg-white dark:bg-slate-900/50 backdrop-blur-xl rounded-[2.5rem] border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col relative overflow-hidden group"
+                    className="lg:col-span-3 p-8 bg-card backdrop-blur-xl rounded-[2.5rem] border border-theme shadow-sm flex flex-col relative overflow-hidden group"
                 >
                     <div className="absolute inset-0 bg-primary/5 dark:bg-accent/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
                     <div className="flex items-center justify-between mb-8 relative z-10">
                         <div>
                             <div className="flex items-center gap-3">
-                                <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Predictive Sales Analysis</h3>
+                                <h3 className="text-xl font-black text-main uppercase tracking-tight">Predictive Sales Analysis</h3>
                                 <span className="bg-primary/10 text-primary text-[8px] font-black px-2 py-0.5 rounded-full tracking-[0.2em] border border-primary/20">ML ENGINE ALPHA</span>
                             </div>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-1">Next 6 Months Revenue Projection</p>
+                            <p className="text-[10px] text-muted font-bold uppercase tracking-[0.2em] mt-1">Next 6 Months Revenue Projection</p>
                         </div>
                         <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-full">
                             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
@@ -295,24 +306,24 @@ const Dashboard = () => {
                         </div>
 
                         {/* Overlay Information */}
-                        <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-white/10 dark:bg-slate-900/10 backdrop-blur-[1px] rounded-3xl z-20">
-                            <div className="p-4 rounded-full bg-white/80 dark:bg-slate-800/80 shadow-2xl mb-4 border border-gray-100 dark:border-slate-700">
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-card/10 dark:bg-slate-900/10 backdrop-blur-[1px] rounded-3xl z-20">
+                            <div className="p-4 rounded-full bg-card/80 dark:bg-slate-800/80 shadow-2xl mb-4 border border-theme">
                                 <TrendingUp size={32} className="text-primary dark:text-accent animate-pulse" />
                             </div>
-                            <h4 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight mb-2">Advanced Forecasting</h4>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 max-w-sm font-medium leading-relaxed">
+                            <h4 className="text-lg font-black text-main uppercase tracking-tight mb-2">Advanced Forecasting</h4>
+                            <p className="text-xs text-muted max-w-sm font-medium leading-relaxed">
                                 {/* Honest admission that development hasn't started */}
                                 This module is currently in the backlog. I'm focusing on stabilizing the core data ingestion first before I start building the prediction logic.
                             </p>
                             <div className="mt-6 flex gap-4">
                                 <div className="text-center">
-                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Current Priority</p>
-                                    <p className="text-sm font-bold text-gray-400 dark:text-gray-500 italic">P3 - Backlog</p>
+                                    <p className="text-[8px] font-black text-muted uppercase tracking-widest mb-1">Current Priority</p>
+                                    <p className="text-sm font-bold text-muted italic">P3 - Backlog</p>
                                 </div>
-                                <div className="w-px h-8 bg-gray-200 dark:bg-slate-800" />
+                                <div className="w-px h-8 bg-theme mx-1" />
                                 <div className="text-center">
-                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Dev Status</p>
-                                    <p className="text-sm font-bold text-gray-900 dark:text-white">Not Started</p>
+                                    <p className="text-[8px] font-black text-muted uppercase tracking-widest mb-1">Dev Status</p>
+                                    <p className="text-sm font-bold text-main">Not Started</p>
                                 </div>
                             </div>
                         </div>

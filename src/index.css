@@ -5,43 +5,44 @@
 @tailwind utilities;
 
 :root {
-  --primary-color: #0A3D62;
-  /* Deep Navy */
-  --secondary-color: #2ECC71;
-  /* Emerald Green */
-  --accent-color: #F39C12;
-  /* Bright Orange */
-  --primary: 10, 61, 98;
-  /* Deep Navy */
-  --secondary: 46, 204, 113;
-  /* Emerald Green - for better contrast in light mode */
-  --accent: 243, 156, 18;
-  /* Bright Orange */
-  --bg-main: #FFFFFF;
-  --bg-card: #F8FAFC;
-  --text-main: #0F172A;
-  --text-muted: #475569;
-  --border-color: rgba(15, 23, 42, 0.08);
-  --logo-primary: #0A3D62;
-  --logo-secondary: #2ECC71;
+  --primary-color: #0F172A;
+  /* Rich Enterprise Navy */
+  --secondary-color: #2563EB;
+  /* Premium Power Blue */
+  --accent-color: #3B82F6;
+  --primary: 15, 23, 42;
+  --secondary: 37, 99, 235;
+  --accent: 59, 130, 246;
+  --bg-main: #F1F5F9;
+  /* Softer base to define surfaces */
+  --bg-main-hover: #E2E8F0;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #F8FAFC;
+  --text-main: #1E293B;
+  /* Slate 800 - Clean & Readable */
+  --text-muted: #64748B;
+  --border-color: #E2E8F0;
+  /* Sharp, clean borders */
+  --logo-primary: #0F172A;
+  /* Solid Navy Brand */
+  --logo-secondary: #0284C7;
+  /* Sky 600 for the 'Star' */
 }
 
 .dark {
   --primary-color: #38BDF8;
-  /* Sky 400 */
-  --secondary-color: #8B5CF6;
-  /* Violet 500 */
+  --secondary-color: #818CF8;
   --accent-color: #F59E0B;
   --primary: 56, 189, 248;
-  /* Sky 400 */
-  --secondary: 139, 92, 246;
-  /* Violet 500 - vibrant for dark mode */
+  --secondary: 129, 140, 248;
   --accent: 245, 158, 11;
   --bg-main: #020617;
+  --bg-main-hover: #0F172A;
   --bg-card: #0F172A;
+  --bg-card-hover: #1E293B;
   --text-main: #F1F5F9;
   --text-muted: #94A3B8;
-  --border-color: rgba(255, 255, 255, 0.04);
+  --border-color: rgba(255, 255, 255, 0.08);
   --logo-primary: #FFFFFF;
   --logo-secondary: #38BDF8;
 }
@@ -53,6 +54,8 @@
     color: var(--text-main);
     margin: 0;
     min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1,
@@ -68,15 +71,28 @@
 
 /* Custom utility for glassmorphism */
 .glass {
-  background-color: rgba(var(--bg-card), 0.7);
-  backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glass {
+  background: rgba(var(--bg-card), 0.6);
   border: 1px solid var(--border-color);
 }
 
 .glass-card {
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-color);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 1);
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
+}
+
+.dark .glass-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
 }
 
 .scroll-progress {
@@ -93,8 +109,16 @@
     background-color: var(--bg-main);
   }
 
+  .bg-main-hover {
+    background-color: var(--bg-main-hover);
+  }
+
   .bg-card {
     background-color: var(--bg-card);
+  }
+
+  .bg-card-hover {
+    background-color: var(--bg-card-hover);
   }
 
   .text-main {
@@ -109,6 +133,10 @@
     border-color: var(--border-color);
   }
 
+  .bg-theme {
+    background-color: var(--border-color);
+  }
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
@@ -121,7 +149,7 @@
 
 /* Vibrant Gradients */
 .bg-gradient-primary {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%);
 }
 
 .dark .bg-gradient-primary {
@@ -133,7 +161,7 @@
 }
 
 .bg-gradient-accent {
-  background: linear-gradient(135deg, var(--accent-color) 0%, #D97706 100%);
+  background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
 }
 
 /* Print Styles */

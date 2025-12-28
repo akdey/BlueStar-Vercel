@@ -4,7 +4,7 @@ import Copyright from '../UI/Copyright';
 
 export default function Footer() {
     return (
-        <footer className="bg-slate-900 dark:bg-black text-white pt-20 pb-10 border-t border-white/5 transition-colors">
+        <footer className="bg-slate-900 dark:bg-black text-white pt-20 pb-10 border-t border-theme transition-colors">
             <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
                 {/* Brand */}
                 <div className="space-y-6">

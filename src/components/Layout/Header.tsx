@@ -22,7 +22,10 @@ export default function Header() {
         skip: !user
     });
 
-    const unreadCount = notificationsData?.data?.length || 0;
+    // API returns array directly, not wrapped in data property
+    const unreadCount = Array.isArray(notificationsData)
+        ? notificationsData.filter((n: any) => !n.is_read).length
+        : (notificationsData?.data?.length || 0);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -42,7 +45,7 @@ export default function Header() {
 
     return (
         <header
-            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm py-3 border-b border-slate-200/50 dark:border-slate-800/50' : 'bg-transparent py-5'
+            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-card/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm py-3 border-b border-theme' : 'bg-transparent py-5'
                 }`}
         >
             <div className="container mx-auto px-6 flex items-center justify-between">
@@ -61,18 +64,18 @@ export default function Header() {
                         <a
                             key={link.name}
                             href={link.href}
-                            className="font-bold text-slate-700 dark:text-slate-200 hover:text-primary dark:hover:text-accent transition-colors text-sm uppercase tracking-wider"
+                            className="font-bold text-main/80 dark:text-slate-200 hover:text-primary dark:hover:text-accent transition-colors text-sm uppercase tracking-wider"
                         >
                             {link.name}
                         </a>
                     ))}
-                    <div className="h-6 w-px bg-slate-200 dark:bg-slate-700" />
+                    <div className="h-6 w-px bg-theme" />
 
                     <motion.button
                         whileHover={{ scale: 1.1, rotate: 10 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={toggleTheme}
-                        className="p-2 rounded-full border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+                        className="p-2 rounded-full border border-theme text-main dark:text-slate-200 hover:bg-main-hover transition-all"
                         aria-label="Toggle Theme"
                     >
                         {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
@@ -83,7 +86,7 @@ export default function Header() {
                             whileHover={{ scale: 1.1, rotate: 10 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={() => setIsNotificationOpen(true)}
-                            className="relative p-2 rounded-full border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+                            className="relative p-2 rounded-full border border-theme text-main dark:text-slate-200 hover:bg-main-hover transition-all"
                             aria-label="Notifications"
                         >
                             <Bell size={18} />
@@ -121,24 +124,24 @@ export default function Header() {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="md:hidden bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 overflow-hidden"
+                        className="md:hidden bg-card dark:bg-slate-900 border-t border-theme overflow-hidden"
                     >
                         <div className="flex flex-col p-6 gap-4">
                             {navLinks.map((link) => (
                                 <a
                                     key={link.name}
                                     href={link.href}
-                                    className="text-lg font-bold text-slate-700 dark:text-slate-200"
+                                    className="text-lg font-bold text-main dark:text-slate-200"
                                     onClick={() => setIsOpen(false)}
                                 >
                                     {link.name}
                                 </a>
                             ))}
-                            <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
-                                <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">Appearance</span>
+                            <div className="flex items-center justify-between pt-4 border-t border-theme">
+                                <span className="text-sm font-bold text-main uppercase tracking-wider">Appearance</span>
                                 <button
                                     onClick={toggleTheme}
-                                    className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200"
+                                    className="p-3 rounded-xl bg-main-hover dark:bg-slate-800 text-main dark:text-slate-200"
                                 >
                                     {theme === 'light' ? (
                                         <div className="flex items-center gap-2 font-bold text-sm"><Moon size={18} /> DARK MODE</div>
@@ -147,7 +150,7 @@ export default function Header() {
                                     )}
                                 </button>
                             </div>
-                            <div className="flex flex-col gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                            <div className="flex flex-col gap-3 pt-4 border-t border-theme">
                                 <button
                                     onClick={() => {
                                         navigate('/login');

@@ -57,9 +57,9 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({ onSuccess, in
     };
 
     const sectionHeader = (icon: any, title: string) => (
-        <div className="flex items-center gap-2 mb-6 border-b border-gray-100 dark:border-slate-800 pb-2">
+        <div className="flex items-center gap-2 mb-6 border-b border-theme pb-2">
             {icon}
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{title}</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted">{title}</h3>
         </div>
     );
 
@@ -83,12 +83,12 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({ onSuccess, in
                         required
                     />
                 ) : (
-                    <div className="bg-secondary/5 dark:bg-secondary/10 p-5 rounded-3xl border border-secondary/10 dark:border-secondary/20 mb-6 relative overflow-hidden">
-                        <div className="absolute -right-4 -top-4 text-secondary/5 italic font-black text-6xl select-none">ID-{initialItem.id}</div>
+                    <div className="bg-main-hover/50 dark:bg-secondary/10 p-5 rounded-3xl border border-theme mb-6 relative overflow-hidden">
+                        <div className="absolute -right-4 -top-4 text-secondary/10 italic font-black text-6xl select-none">ID-{initialItem.id}</div>
                         <div className="relative z-10">
                             <p className="text-[10px] font-black text-secondary uppercase mb-2 tracking-widest">Target Item Profile</p>
-                            <p className="text-2xl font-black text-primary dark:text-white leading-none mb-1">{initialItem.name}</p>
-                            <p className="text-[10px] text-gray-400 font-mono tracking-tighter uppercase font-bold italic">{initialItem.code || 'NO SKU'}</p>
+                            <p className="text-2xl font-black text-main dark:text-white leading-none mb-1 uppercase tracking-tight">{initialItem.name}</p>
+                            <p className="text-[10px] text-muted font-mono tracking-tighter uppercase font-bold italic">{initialItem.code || 'NO SKU'}</p>
                         </div>
                     </div>
                 )}
@@ -101,16 +101,16 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({ onSuccess, in
                 >
                     {sectionHeader(<BarChart2 size={14} className="text-primary" />, "Quick Stock Adjustment")}
 
-                    <div className="bg-slate-50 dark:bg-slate-800/40 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 relative overflow-hidden">
+                    <div className="bg-main-hover/30 dark:bg-slate-800/40 p-8 rounded-[2.5rem] border border-theme relative overflow-hidden">
                         <div className="relative z-10 flex items-center justify-between gap-8">
                             <div className="flex-1">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 block">New Inventory Level</label>
+                                <label className="text-[10px] font-black text-muted uppercase tracking-widest mb-4 block">New Inventory Level</label>
                                 <Input
                                     type="number"
                                     registration={register('current_stock' as any)}
                                     error={errors.current_stock?.message as string}
                                     placeholder="0"
-                                    className="text-4xl font-black bg-transparent border-none p-0 focus:ring-0 h-auto"
+                                    className="text-4xl font-black bg-transparent border-none p-0 focus:ring-0 h-auto text-main"
                                 />
                             </div>
                             <div className="hidden md:flex items-center justify-center w-16 h-16 bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800 shrink-0">
@@ -127,21 +127,20 @@ const StockAdjustmentForm: React.FC<StockAdjustmentFormProps> = ({ onSuccess, in
                 </motion.section>
             )}
 
-            <div className="pt-8">
-                <motion.button
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
+            <div className="pt-8 text-center">
+                <Button
                     type="submit"
                     disabled={isSubmitting || !selectedItemId}
-                    className="w-full flex items-center justify-center py-4 px-4 bg-gradient-to-r from-primary to-secondary rounded-2xl shadow-xl shadow-primary/20 text-xs font-black text-white uppercase tracking-[0.25em] focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-30 disabled:grayscale transition-all"
+                    className="w-full py-4 text-xs tracking-[0.25em]"
+                    rounded="xl"
                 >
                     {isSubmitting ? (
                         <Loader2 className="animate-spin h-6 w-6" />
                     ) : (
                         <span>Execute Adjustment</span>
                     )}
-                </motion.button>
-                <p className="text-[9px] text-gray-400 text-center mt-6 uppercase font-bold tracking-tighter italic">This action will override the current stock balance in the master registry.</p>
+                </Button>
+                <p className="text-[9px] text-muted text-center mt-6 uppercase font-bold tracking-widest italic">This action will override the current stock balance in the master registry.</p>
             </div>
         </form>
     );

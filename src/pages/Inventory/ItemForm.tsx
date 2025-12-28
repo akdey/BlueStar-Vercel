@@ -67,9 +67,9 @@ const ItemForm: React.FC<ItemFormProps> = ({ onSuccess, item }) => {
     };
 
     const sectionHeader = (icon: any, title: string) => (
-        <div className="flex items-center gap-2 mb-4 border-b border-gray-100 dark:border-slate-800 pb-2 mt-2">
+        <div className="flex items-center gap-2 mb-4 border-b border-theme pb-2 mt-2">
             {icon}
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{title}</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted">{title}</h3>
         </div>
     );
 
@@ -141,7 +141,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ onSuccess, item }) => {
 
             <section>
                 {sectionHeader(<BarChart size={14} className="text-primary" />, "Inventory Status")}
-                <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-100 dark:border-slate-800">
+                <div className="bg-main-hover/30 dark:bg-slate-800/40 p-5 rounded-2xl border border-theme">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <Input
                             label="Current Stock"

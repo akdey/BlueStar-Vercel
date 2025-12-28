@@ -21,7 +21,8 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
     const { data: notificationsData, isLoading } = useGetNotificationsQuery({ unread_only: false });
     const [markRead] = useMarkNotificationReadMutation();
 
-    const notifications = notificationsData?.data || [];
+    // API returns array directly, not wrapped in data property
+    const notifications = Array.isArray(notificationsData) ? notificationsData : (notificationsData?.data || []);
     const unreadCount = notifications.filter((n: any) => !n.is_read).length;
 
     const handleMarkAsRead = async (id: number) => {
@@ -64,6 +65,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                         animate={{ x: 0, opacity: 1 }}
                         exit={{ x: "100%", opacity: 0 }}
                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                        onClick={(e) => e.stopPropagation()}
                         className="fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-white dark:bg-slate-900 shadow-2xl border-l border-slate-100 dark:border-slate-800 flex flex-col"
                     >
                         {/* Header */}
@@ -114,8 +116,8 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         className={`relative p-4 rounded-2xl border transition-all group ${notification.is_read
-                                                ? "bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                                                : "bg-white dark:bg-slate-800 border-primary/10 shadow-lg shadow-primary/5"
+                                            ? "bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                                            : "bg-white dark:bg-slate-800 border-primary/10 shadow-lg shadow-primary/5"
                                             }`}
                                     >
                                         {!notification.is_read && (
@@ -125,8 +127,8 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                                         <div className="flex gap-4">
                                             {/* Icon Container */}
                                             <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${notification.is_read
-                                                    ? "bg-slate-100 dark:bg-slate-800 text-slate-400"
-                                                    : "bg-primary/10 text-primary"
+                                                ? "bg-slate-100 dark:bg-slate-800 text-slate-400"
+                                                : "bg-primary/10 text-primary"
                                                 }`}>
                                                 {getTypeIcon(notification.type)}
                                             </div>

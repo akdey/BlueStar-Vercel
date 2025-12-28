@@ -184,7 +184,7 @@ export default function LoginPage() {
                         })}
                     </svg>
 
-                    {/* The Truck */}
+                    {/* The Truck (Brand Icon) */}
                     <motion.div
                         className="absolute z-20 pointer-events-none"
                         style={{
@@ -196,18 +196,7 @@ export default function LoginPage() {
                         }}
                     >
                         <div className="relative text-accent">
-                            <Truck size={42} className="drop-shadow-[0_0_15px_rgba(241,144,32,0.8)]" />
-                            {/* Animated Spinning Wheels */}
-                            <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 0.3, repeat: Infinity, ease: "linear" }}
-                                className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-white rounded-full border border-black"
-                            />
-                            <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 0.3, repeat: Infinity, ease: "linear" }}
-                                className="absolute bottom-1 right-1.5 w-1.5 h-1.5 bg-white rounded-full border border-black"
-                            />
+                            <Logo variant="icon" className="w-12 h-12 drop-shadow-[0_0_15px_rgba(241,144,32,0.8)]" />
                         </div>
                     </motion.div>
 

@@ -7,14 +7,14 @@ interface BadgeProps {
 }
 
 const variantStyles = {
-    default: 'bg-blue-50 text-blue-700 border-blue-200',
-    primary: 'bg-primary/10 text-primary border-primary/20',
-    secondary: 'bg-secondary/10 text-secondary border-secondary/20',
-    info: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-    success: 'bg-green-50 text-green-700 border-green-200',
-    warning: 'bg-amber-50 text-amber-700 border-amber-200',
-    error: 'bg-red-50 text-red-700 border-red-200',
-    neutral: 'bg-gray-50 text-gray-600 border-gray-200',
+    default: 'bg-slate-100 text-slate-700 border-slate-200',
+    primary: 'bg-primary/5 text-primary border-primary/10',
+    secondary: 'bg-secondary/5 text-secondary border-secondary/10',
+    info: 'bg-blue-50 text-blue-700 border-blue-100',
+    success: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+    warning: 'bg-amber-50 text-amber-700 border-amber-100',
+    error: 'bg-red-50 text-red-700 border-red-100',
+    neutral: 'bg-slate-50 text-slate-500 border-slate-200',
 };
 
 const Badge: React.FC<BadgeProps> = ({ children, variant = 'default', className = '' }) => {

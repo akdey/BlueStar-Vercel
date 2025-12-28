@@ -39,23 +39,23 @@ const SlideOver: React.FC<SlideOverProps> = ({
                         exit={{ x: '100%' }}
                         transition={{ type: 'spring', damping: 30, stiffness: 300, mass: 0.8 }}
                         className="fixed inset-y-0 right-0 z-50 w-full sm:max-w-xl md:max-w-2xl lg:max-w-3xl
-                                   bg-white/95 dark:bg-slate-900/95 
+                                   bg-card dark:bg-slate-900/95 
                                    backdrop-blur-xl
-                                   shadow-[0_0_100px_rgba(0,0,0,0.2)] dark:shadow-[0_0_100px_rgba(0,0,0,0.5)]
-                                   border-l border-gray-100 dark:border-slate-800
+                                   shadow-2xl
+                                   border-l border-theme
                                    flex flex-col"
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between px-6 py-5 
-                                       border-b border-gray-100 dark:border-slate-800
-                                       bg-white dark:bg-slate-900/50">
+                                       border-b border-theme
+                                       bg-card dark:bg-slate-900/50">
                             <div>
-                                <h2 className="text-xl font-black text-gray-900 dark:text-gray-100 tracking-tight">{title}</h2>
+                                <h2 className="text-xl font-black text-main dark:text-gray-100 tracking-tight uppercase">{title}</h2>
                                 <div className="h-1 w-12 bg-primary mt-1 rounded-full"></div>
                             </div>
                             <button
                                 onClick={onClose}
-                                className="p-2 text-gray-400 dark:text-gray-500 
+                                className="p-2 text-muted 
                                          hover:text-red-500 dark:hover:text-red-400
                                          hover:bg-red-50 dark:hover:bg-red-900/20
                                          rounded-xl transition-all duration-200"

@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Truck, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import Logo from '../UI/Logo';
 import Aurora from '../UI/Aurora';
 import Magnet from '../UI/Magnet';
@@ -78,15 +78,13 @@ export default function Hero() {
                 </motion.div>
             </div>
 
-            {/* Animated Truck */}
+            {/* Animated Truck (Brand Icon) */}
             <div
                 ref={truckRef}
-                className="absolute bottom-8 -left-64 z-20 flex items-center gap-4 text-primary dark:text-sky-400 opacity-90 drop-shadow-[0_0_20px_rgba(56,189,248,0.3)]"
+                className="absolute bottom-16 -left-64 z-20 flex items-center gap-4 opacity-90 drop-shadow-[0_0_20px_rgba(56,189,248,0.3)]"
             >
                 <div className="relative">
-                    <Truck size={68} className="fill-primary/20 dark:fill-sky-400/10" />
-                    <div className="absolute -bottom-1 left-2 w-3 h-3 bg-slate-900 rounded-full animate-spin" />
-                    <div className="absolute -bottom-1 right-3 w-3 h-3 bg-slate-900 rounded-full animate-spin" />
+                    <Logo variant="icon" className="w-20 h-20" />
                 </div>
                 <div className="h-1 w-screen opacity-0" />
             </div>

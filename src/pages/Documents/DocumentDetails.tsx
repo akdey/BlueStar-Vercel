@@ -70,18 +70,18 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ docId, onStatusChange
     };
 
     const sectionHeader = (icon: any, title: string) => (
-        <div className="flex items-center gap-2 mb-4 border-b border-gray-100 dark:border-slate-800 pb-2">
+        <div className="flex items-center gap-2 mb-4 border-b border-theme pb-2">
             {icon}
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{title}</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted">{title}</h3>
         </div>
     );
 
     const dataRow = (label: string, value: any, Icon?: any) => (
         <div className="flex flex-col space-y-1">
-            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">{label}</span>
+            <span className="text-[9px] font-black text-muted uppercase tracking-widest">{label}</span>
             <div className="flex items-center gap-2">
-                {Icon && <Icon size={12} className="text-gray-300" />}
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{value || '—'}</span>
+                {Icon && <Icon size={12} className="text-primary/40" />}
+                <span className="text-sm font-bold text-main dark:text-gray-100">{value || '—'}</span>
             </div>
         </div>
     );
@@ -101,7 +101,7 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ docId, onStatusChange
     return (
         <div className="space-y-8 pb-10">
             {/* Document Header Card */}
-            <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden">
+            <div className="bg-gradient-primary rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden">
                 <div className="absolute -right-8 -top-8 text-white/5">
                     <FileText size={160} />
                 </div>
@@ -142,8 +142,8 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ docId, onStatusChange
                     </div>
                 </div>
                 <div className="relative z-10">
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 italic mb-2">Original Document Entry</p>
-                    <h2 className="text-3xl font-black tracking-tight mb-2">{document.doc_number || 'AUTO-GEN-DOC'}</h2>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60 italic mb-2">Original Document Entry</p>
+                    <h2 className="text-3xl font-black tracking-tight mb-2 uppercase">{document.doc_number || 'AUTO-GEN-DOC'}</h2>
                     <div className="flex items-center gap-4 text-xs font-bold text-gray-300 uppercase tracking-widest">
                         <span className="flex items-center gap-1.5"><Calendar size={14} className="text-primary" /> {new Date(document.doc_date).toLocaleDateString()}</span>
                         <span className="w-1.5 h-1.5 rounded-full bg-slate-700" />
@@ -164,8 +164,8 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ docId, onStatusChange
                             <AlertCircle size={24} />
                         </div>
                         <div>
-                            <h4 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-tight">Pending Finalization</h4>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">This document is currently a draft. Issuing will sync inventory and ledgers.</p>
+                            <h4 className="text-sm font-black text-main dark:text-white uppercase tracking-tight">Pending Finalization</h4>
+                            <p className="text-xs text-muted mt-0.5">This document is currently a draft. Issuing will sync inventory and ledgers.</p>
                         </div>
                     </div>
                     <Button
@@ -181,13 +181,13 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ docId, onStatusChange
             )}
 
             {/* Stakeholder Info */}
-            <section className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm">
+            <section className="bg-card dark:bg-slate-900 border border-theme p-6 rounded-3xl shadow-sm">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                    <div className="space-y-6 border-r border-gray-100 dark:border-slate-800 pr-8">
+                    <div className="space-y-6 border-r border-theme pr-8">
                         {sectionHeader(<User size={14} className="text-primary" />, "Billed Party Account")}
                         <div>
-                            <p className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">{document.party_name}</p>
-                            <p className="text-xs font-bold text-gray-400 italic">Account ID: {document.party_id}</p>
+                            <p className="text-lg font-black text-main dark:text-white uppercase tracking-tight">{document.party_name}</p>
+                            <p className="text-xs font-bold text-muted italic">Account ID: {document.party_id}</p>
                         </div>
                     </div>
                     <div className="space-y-6 pl-0 sm:pl-4">
@@ -203,30 +203,30 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ docId, onStatusChange
             {/* Line Items Table */}
             <section>
                 {sectionHeader(<Package size={14} className="text-primary" />, "Itemized Transaction Details")}
-                <div className="overflow-hidden border border-gray-100 dark:border-slate-800 rounded-3xl">
+                <div className="overflow-hidden border border-theme rounded-3xl bg-card">
                     <table className="w-full text-left border-collapse">
-                        <thead className="bg-gray-50/50 dark:bg-slate-800/30">
+                        <thead className="bg-main-hover/30 dark:bg-slate-800/30">
                             <tr>
-                                <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-gray-400">Description</th>
-                                <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-gray-400 text-center">Qty</th>
-                                <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-gray-400 text-right">Rate</th>
-                                <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-gray-400 text-right">Amount</th>
+                                <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted">Description</th>
+                                <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted text-center">Qty</th>
+                                <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted text-right">Rate</th>
+                                <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted text-right">Amount</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50 dark:divide-slate-800/50">
+                        <tbody className="divide-y border-theme">
                             {document.items?.map((item: any, idx: number) => (
-                                <tr key={idx} className="group hover:bg-gray-50/30 dark:hover:bg-slate-800/10 transition-colors">
+                                <tr key={idx} className="group hover:bg-main-hover/50 transition-colors">
                                     <td className="px-4 py-4">
                                         <div className="flex flex-col">
-                                            <span className="text-sm font-black text-gray-900 dark:text-gray-100">{item.item_name || 'System Product'}</span>
-                                            <span className="text-[10px] text-gray-400 font-mono tracking-tighter uppercase italic">SKU-ID: {item.item_id}</span>
+                                            <span className="text-sm font-black text-main dark:text-gray-100">{item.item_name || 'System Product'}</span>
+                                            <span className="text-[10px] text-muted font-mono tracking-tighter uppercase italic">SKU-ID: {item.item_id}</span>
                                         </div>
                                     </td>
                                     <td className="px-4 py-4 text-center">
-                                        <span className="text-xs font-bold bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">{item.quantity}</span>
+                                        <span className="text-xs font-bold bg-main-hover px-2 py-1 rounded-lg">{item.quantity}</span>
                                     </td>
                                     <td className="px-4 py-4 text-right">
-                                        <span className="text-xs font-bold text-gray-600 dark:text-gray-400">₹{item.rate.toLocaleString()}</span>
+                                        <span className="text-xs font-bold text-muted">₹{item.rate.toLocaleString()}</span>
                                     </td>
                                     <td className="px-4 py-4 text-right">
                                         <span className="text-sm font-black text-primary">₹{item.amount.toLocaleString()}</span>
@@ -240,13 +240,13 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ docId, onStatusChange
                 {/* Total Summary */}
                 <div className="mt-8 flex justify-end">
                     <div className="w-full sm:w-64 space-y-3">
-                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-gray-400">
+                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted">
                             <span>Subtotal</span>
-                            <span className="text-gray-900 dark:text-white">₹{document.total_amount?.toLocaleString()}</span>
+                            <span className="text-main dark:text-white">₹{document.total_amount?.toLocaleString()}</span>
                         </div>
-                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-gray-400 pb-3 border-b border-gray-100 dark:border-slate-800">
+                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted pb-3 border-b border-theme">
                             <span>Tax (Calculated)</span>
-                            <span className="text-gray-900 dark:text-white">₹0.00</span>
+                            <span className="text-main dark:text-white">₹0.00</span>
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-[11px] font-black uppercase tracking-[0.2em] text-primary">Grand Total</span>
@@ -260,7 +260,7 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ docId, onStatusChange
             {document.notes && (
                 <section>
                     {sectionHeader(<Quote size={14} className="text-secondary" />, "Internal Registry Remarks")}
-                    <div className="p-6 rounded-[2rem] bg-gray-50 dark:bg-slate-800/20 border border-gray-100 dark:border-slate-800 italic text-gray-600 dark:text-gray-400 text-sm font-medium leading-relaxed">
+                    <div className="p-6 rounded-[2rem] bg-main-hover/30 dark:bg-slate-800/20 border border-theme italic text-muted text-sm font-medium leading-relaxed">
                         "{document.notes}"
                     </div>
                 </section>

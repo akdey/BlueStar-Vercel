@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
@@ -29,9 +29,10 @@ import {
     Shield,
     ChevronDown,
     Loader2,
-    MessageSquare
+    MessageSquare,
+    CheckCircle2
 } from 'lucide-react';
-import { useChangePasswordMutation } from '../features/api/apiSlice';
+import { useChangePasswordMutation, useLazyGetNotificationsQuery, useMarkNotificationReadMutation } from '../features/api/apiSlice';
 import { toast } from 'react-toastify';
 
 const DashboardLayout = () => {
@@ -65,7 +66,7 @@ const DashboardLayout = () => {
     );
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#050b18] flex transition-colors duration-500">
+        <div className="min-h-screen bg-main flex transition-colors duration-500">
             {/* Mobile Sidebar Backdrop */}
             <AnimatePresence>
                 {isSidebarOpen && (
@@ -85,9 +86,9 @@ const DashboardLayout = () => {
                 transition={{ duration: 0.3, ease: 'easeInOut' }}
                 className={`
                     fixed inset-y-0 left-0 z-50
-                    bg-white/95 dark:bg-slate-900/95 
+                    bg-card/95 dark:bg-slate-900/95 
                     backdrop-blur-xl
-                    border-r border-gray-200 dark:border-slate-800
+                    border-r border-theme
                     shadow-xl lg:shadow-none
                     flex flex-col
                     transform transition-transform duration-300 ease-in-out
@@ -96,17 +97,17 @@ const DashboardLayout = () => {
             >
                 {/* Logo Area */}
                 <div className="h-16 flex items-center px-4 border-b border-gray-200 dark:border-slate-800 justify-between flex-shrink-0">
-                    {!isSidebarCollapsed && <Logo variant="compact" className="scale-75" />}
+                    {!isSidebarCollapsed && <Logo variant="compact" />}
                     {isSidebarCollapsed && (
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm mx-auto">
-                            BS
+                        <div className="mx-auto">
+                            <Logo variant="icon" className="w-8 h-8" />
                         </div>
                     )}
 
                     {/* Collapse Button - Desktop */}
                     <button
                         onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                        className="hidden lg:block p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-500 dark:text-gray-400 transition-colors"
+                        className="hidden lg:block p-1.5 rounded-lg hover:bg-main-hover text-muted transition-colors"
                         title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                     >
                         {isSidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
@@ -115,7 +116,7 @@ const DashboardLayout = () => {
                     {/* Close Button - Mobile */}
                     <button
                         onClick={() => setIsSidebarOpen(false)}
-                        className="lg:hidden p-1 rounded-md hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-500 dark:text-gray-400"
+                        className="lg:hidden p-1 rounded-md hover:bg-main-hover text-muted"
                     >
                         <X size={20} />
                     </button>
@@ -134,8 +135,8 @@ const DashboardLayout = () => {
                                     relative group flex items-center gap-3 px-3 py-2.5 rounded-lg
                                     text-sm font-medium transition-all duration-200
                                     ${isActive
-                                        ? 'text-primary dark:text-accent bg-primary/10 dark:bg-accent/10'
-                                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-gray-200'
+                                        ? 'text-primary dark:text-accent bg-primary/5 dark:bg-accent/10'
+                                        : 'text-muted hover:bg-main-hover hover:text-main dark:hover:text-gray-200'
                                     }
                                     ${isSidebarCollapsed ? 'justify-center' : ''}
                                 `}
@@ -145,7 +146,7 @@ const DashboardLayout = () => {
                                     size={20}
                                     className={`
                                         transition-colors duration-200 flex-shrink-0
-                                        ${isActive ? 'text-primary dark:text-accent' : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300'}
+                                        ${isActive ? 'text-primary dark:text-accent' : 'text-primary/40 dark:text-gray-500 group-hover:text-primary dark:group-hover:text-gray-300'}
                                     `}
                                 />
                                 {!isSidebarCollapsed && (
@@ -165,7 +166,7 @@ const DashboardLayout = () => {
                 </nav>
 
                 {/* Sidebar Bottom - Logout Only */}
-                <div className="p-4 border-t border-gray-200 dark:border-slate-800 flex-shrink-0">
+                <div className="p-4 border-t border-theme flex-shrink-0">
                     <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
@@ -195,7 +196,7 @@ const DashboardLayout = () => {
                 {/* Topbar */}
                 <header
                     className={`
-                        h-16 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-slate-800 
+                        h-16 bg-card/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-theme 
                         flex items-center justify-between px-4 lg:px-8 fixed top-0 right-0 z-30 transition-all duration-300
                         ${isSidebarCollapsed ? 'lg:left-20' : 'lg:left-64'}
                         left-0
@@ -204,17 +205,17 @@ const DashboardLayout = () => {
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => setIsSidebarOpen(true)}
-                            className="lg:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-gray-400"
+                            className="lg:hidden p-2 rounded-md hover:bg-main-hover text-gray-600 dark:text-gray-400"
                         >
                             <Menu size={20} />
                         </button>
 
                         <div className="lg:hidden flex">
-                            <Logo variant="compact" className="scale-75 origin-left" />
+                            <Logo variant="compact" className="origin-left" />
                         </div>
                     </div>
 
-                    <div className="flex bg-gray-50 dark:bg-slate-800/50 items-center px-4 py-2 rounded-lg w-full max-w-md ml-4 lg:ml-0 hidden lg:flex">
+                    <div className="flex bg-main dark:bg-slate-800/50 items-center px-4 py-2 rounded-lg w-full max-w-md ml-4 lg:ml-0 hidden lg:flex border border-theme">
                         <Search size={18} className="text-gray-400 dark:text-gray-500 mr-2" />
                         <input
                             type="text"
@@ -227,30 +228,30 @@ const DashboardLayout = () => {
                         {/* Theme Toggle */}
                         <button
                             onClick={toggleTheme}
-                            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-500 dark:text-gray-400 transition-colors"
+                            className="p-2 rounded-full hover:bg-main-hover text-gray-500 dark:text-gray-400 transition-colors"
                             title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
                         >
                             {theme === 'dark' ? <Sun size={18} className="sm:w-5 sm:h-5" /> : <Moon size={18} className="sm:w-5 sm:h-5" />}
                         </button>
 
-                        <div className="h-8 w-px bg-gray-200 dark:bg-slate-800 mx-1 hidden sm:block" />
+                        <div className="h-8 w-px bg-theme mx-1 hidden sm:block" />
 
                         <NotificationDropdown />
 
-                        <div className="h-8 w-px bg-gray-200 dark:bg-slate-800 mx-1 hidden sm:block" />
+                        <div className="h-8 w-px bg-theme mx-1 hidden sm:block" />
 
                         <UserAvatarMenu user={user} logout={logout} />
                     </div>
                 </header>
 
                 {/* Page Content - Scrollable */}
-                <main className="flex-1 bg-slate-50 dark:bg-[#050b18] p-4 lg:p-8 transition-colors duration-500 mt-16 flex flex-col">
+                <main className="flex-1 bg-main p-4 lg:p-8 transition-colors duration-500 mt-16 flex flex-col">
                     <div className="max-w-7xl mx-auto flex-1 w-full">
                         <Outlet />
                     </div>
 
                     {/* Dashboard Footer/Copyright */}
-                    <div id="dashboard-footer" className="max-w-7xl mx-auto w-full mt-12 pt-8 border-t border-gray-200/50 dark:border-slate-800/50">
+                    <div id="dashboard-footer" className="max-w-7xl mx-auto w-full mt-12 pt-8 border-t border-theme">
                         <Copyright className="flex flex-col md:flex-row md:items-center md:justify-between !text-[10px] !text-gray-400 dark:text-gray-600 font-bold uppercase tracking-[0.2em] gap-4 text-center md:text-left" />
                     </div>
                 </main>
@@ -268,7 +269,7 @@ const UserAvatarMenu = ({ user, logout }: any) => {
             <div className="relative">
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center gap-3 p-1.5 rounded-2xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-all border border-transparent hover:border-gray-200 dark:hover:border-slate-700"
+                    className="flex items-center gap-3 p-1.5 rounded-2xl hover:bg-main-hover transition-all border border-transparent hover:border-theme"
                 >
                     <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-black text-sm shadow-lg shadow-primary/20">
                         {user?.username?.charAt(0).toUpperCase()}
@@ -292,9 +293,9 @@ const UserAvatarMenu = ({ user, logout }: any) => {
                                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                className="absolute right-0 mt-3 w-64 bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-gray-100 dark:border-slate-800 z-50 overflow-hidden"
+                                className="absolute right-0 mt-3 w-64 bg-card rounded-[2rem] shadow-2xl border border-theme z-50 overflow-hidden"
                             >
-                                <div className="p-6 border-b border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/30">
+                                <div className="p-6 border-b border-theme bg-main-hover">
                                     <div className="flex items-center gap-3 mb-4">
                                         <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-black text-lg shadow-xl shadow-primary/20">
                                             {user?.username?.charAt(0).toUpperCase()}
@@ -314,9 +315,9 @@ const UserAvatarMenu = ({ user, logout }: any) => {
                                         setIsPasswordModalOpen(true);
                                         setIsOpen(false);
                                     }}
-                                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-300 transition-all group"
+                                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-main-hover text-gray-700 dark:text-gray-300 transition-all group"
                                 >
-                                    <div className="p-2 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400 group-hover:text-primary transition-colors">
+                                    <div className="p-2 rounded-lg bg-main-hover text-gray-500 dark:text-gray-400 group-hover:text-primary transition-colors">
                                         <Lock size={16} />
                                     </div>
                                     <div className="text-left">
@@ -324,7 +325,6 @@ const UserAvatarMenu = ({ user, logout }: any) => {
                                         <p className="text-[9px] text-gray-400 font-bold">Rotate system keys</p>
                                     </div>
                                 </button>
-
                                 <button
                                     onClick={logout}
                                     className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gradient-to-r hover:from-red-500 hover:to-red-600 hover:text-white dark:hover:from-red-900/40 dark:hover:to-red-800/40 text-red-600 transition-all group mt-2"
@@ -385,13 +385,13 @@ const ChangePasswordModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-white/20 overflow-hidden"
+                        className="relative w-full max-w-md bg-card rounded-[2.5rem] shadow-2xl border border-theme overflow-hidden"
                     >
                         <div className="p-8 pb-0">
                             <div className="p-3 rounded-2xl bg-primary/10 text-primary w-fit mb-4">
                                 <Lock size={24} />
                             </div>
-                            <h3 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Security Protocol</h3>
+                            <h3 className="text-2xl font-black text-main dark:text-white uppercase tracking-tight">Security Protocol</h3>
                             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Rotate your system access keys</p>
                         </div>
 
@@ -459,15 +459,39 @@ const ChangePasswordModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
 
 const NotificationDropdown = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const [trigger, { data: notificationsData, isLoading }] = useLazyGetNotificationsQuery();
+    const [markRead] = useMarkNotificationReadMutation();
+
+    // API returns array directly, not wrapped in data property
+    const notifications = Array.isArray(notificationsData) ? notificationsData : (notificationsData?.data || []);
+    const unreadCount = notifications.filter((n: any) => !n.is_read).length;
+
+    // Fetch notifications on mount (lazy load)
+    useEffect(() => {
+        trigger({ unread_only: true });
+    }, [trigger]);
+
+    const handleMarkAsRead = async (id: number) => {
+        try {
+            await markRead(id).unwrap();
+            // Refetch to update the list
+            trigger({ unread_only: true });
+        } catch (error) {
+            console.error("Failed to mark as read", error);
+        }
+    };
 
     return (
         <div className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-500 dark:text-gray-400 relative transition-colors"
+                aria-label="Notifications"
             >
                 <Bell size={18} className="sm:w-5 sm:h-5" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white dark:border-slate-900 animate-pulse"></span>
+                {unreadCount > 0 && (
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white dark:border-slate-900 animate-pulse"></span>
+                )}
             </button>
 
             <AnimatePresence>
@@ -482,22 +506,58 @@ const NotificationDropdown = () => {
                         >
                             <div className="p-6 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
                                 <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-tight">Signals</h3>
-                                <span className="text-[10px] bg-red-100 dark:bg-red-900/30 text-red-600 px-2 py-1 rounded-full font-black">0 NEW</span>
+                                <span className={`text-[10px] px-2 py-1 rounded-full font-black ${unreadCount > 0 ? 'bg-red-100 dark:bg-red-900/30 text-red-600' : 'bg-gray-100 dark:bg-gray-800 text-gray-500'}`}>
+                                    {unreadCount} NEW
+                                </span>
                             </div>
-                            <div className="p-8 text-center flex flex-col items-center gap-4">
-                                <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/50 text-gray-300 dark:text-gray-600">
-                                    <Bell size={32} />
+
+                            {isLoading ? (
+                                <div className="p-8 text-center flex flex-col items-center gap-4">
+                                    <Loader2 size={32} className="animate-spin text-primary" />
+                                    <p className="text-xs text-gray-400">Loading notifications...</p>
                                 </div>
-                                <div>
-                                    <p className="text-sm font-bold text-gray-900 dark:text-gray-100 italic">Clear Communication</p>
-                                    <p className="text-xs text-gray-400 mt-1">No new operational updates at this time.</p>
+                            ) : notifications.length === 0 ? (
+                                <div className="p-8 text-center flex flex-col items-center gap-4">
+                                    <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/50 text-gray-300 dark:text-gray-600">
+                                        <Bell size={32} />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-gray-900 dark:text-gray-100 italic">Clear Communication</p>
+                                        <p className="text-xs text-gray-400 mt-1">No new operational updates at this time.</p>
+                                    </div>
                                 </div>
-                            </div>
+                            ) : (
+                                <div className="max-h-96 overflow-y-auto">
+                                    {notifications.slice(0, 5).map((notification: any) => (
+                                        <div
+                                            key={notification.id}
+                                            className="p-4 border-b border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors group"
+                                        >
+                                            <div className="flex gap-3">
+                                                <div className={`shrink-0 w-2 h-2 rounded-full mt-1.5 ${!notification.is_read ? 'bg-red-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{notification.title}</p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{notification.message}</p>
+                                                </div>
+                                                {!notification.is_read && (
+                                                    <button
+                                                        onClick={() => handleMarkAsRead(notification.id)}
+                                                        className="opacity-0 group-hover:opacity-100 shrink-0 p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-400 hover:text-primary transition-all"
+                                                        title="Mark as read"
+                                                    >
+                                                        <CheckCircle2 size={14} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </motion.div>
                     </>
                 )}
             </AnimatePresence>
-        </div>
+        </div >
     );
 };
 

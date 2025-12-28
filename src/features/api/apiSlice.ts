@@ -415,5 +415,6 @@ export const {
     useCreateTransactionMutation,
     useSendChatMessageMutation,
     useGetNotificationsQuery,
+    useLazyGetNotificationsQuery,
     useMarkNotificationReadMutation,
 } = apiSlice;
