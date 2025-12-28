@@ -50,20 +50,30 @@ const DashboardLayout = () => {
     };
 
     const navigation = [
-        { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-        { name: 'Users', href: '/users', icon: Users, adminOnly: true },
-        { name: 'Parties', href: '/parties', icon: NotebookTabs },
-        { name: 'Inventory', href: '/inventory', icon: Package },
-        { name: 'Fleet', href: '/fleet', icon: Truck },
-        { name: 'Trade Vouchers', href: '/vouchers', icon: FileText },
-        { name: 'Trips', href: '/trips', icon: MapPin },
-        { name: 'Transactions', href: '/transactions', icon: CircleDollarSign },
-        { name: 'Enterprise Chat', href: '/chat', icon: MessageSquare },
+        { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, category: 'Overview' },
+        { name: 'Enterprise Chat', href: '/chat', icon: MessageSquare, category: 'Overview' },
+
+        { name: 'Trade Vouchers', href: '/vouchers', icon: FileText, category: 'Trade & Logistics' },
+        { name: 'Trips', href: '/trips', icon: MapPin, category: 'Trade & Logistics' },
+        { name: 'Inventory', href: '/inventory', icon: Package, category: 'Trade & Logistics' },
+        { name: 'Fleet', href: '/fleet', icon: Truck, category: 'Trade & Logistics' },
+
+        { name: 'Transactions', href: '/transactions', icon: CircleDollarSign, category: 'Finance & CRM' },
+        { name: 'Parties', href: '/parties', icon: NotebookTabs, category: 'Finance & CRM' },
+
+        { name: 'Users', href: '/users', icon: Users, adminOnly: true, category: 'Management' },
     ];
 
     const filteredNavigation = navigation.filter(item =>
         !item.adminOnly || (user?.role === 'admin')
     );
+
+    // Grouping navigation by category
+    const groupedNav = filteredNavigation.reduce((acc: any, item) => {
+        if (!acc[item.category]) acc[item.category] = [];
+        acc[item.category].push(item);
+        return acc;
+    }, {});
 
     return (
         <div className="min-h-screen bg-main flex transition-colors duration-500">
@@ -123,46 +133,55 @@ const DashboardLayout = () => {
                 </div>
 
                 {/* Navigation */}
-                <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1 scrollbar-hide">
-                    {filteredNavigation.map((item) => {
-                        const isActive = location.pathname.startsWith(item.href);
-                        return (
-                            <Link
-                                key={item.name}
-                                to={item.href}
-                                onClick={() => setIsSidebarOpen(false)}
-                                className={`
-                                    relative group flex items-center gap-3 px-3 py-2.5 rounded-lg
-                                    text-sm font-medium transition-all duration-200
-                                    ${isActive
-                                        ? 'text-primary dark:text-accent bg-primary/5 dark:bg-accent/10'
-                                        : 'text-muted hover:bg-main-hover hover:text-main dark:hover:text-gray-200'
-                                    }
-                                    ${isSidebarCollapsed ? 'justify-center' : ''}
-                                `}
-                                title={isSidebarCollapsed ? item.name : ''}
-                            >
-                                <item.icon
-                                    size={20}
-                                    className={`
-                                        transition-colors duration-200 flex-shrink-0
-                                        ${isActive ? 'text-primary dark:text-accent' : 'text-primary/40 dark:text-gray-500 group-hover:text-primary dark:group-hover:text-gray-300'}
-                                    `}
-                                />
-                                {!isSidebarCollapsed && (
-                                    <>
-                                        <span>{item.name}</span>
-                                        {isActive && (
-                                            <motion.div
-                                                layoutId="activeTab"
-                                                className="absolute right-3 w-1.5 h-1.5 rounded-full bg-primary dark:bg-accent"
-                                            />
+                <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-6 scrollbar-hide">
+                    {Object.entries(groupedNav).map(([category, items]: [string, any]) => (
+                        <div key={category} className="space-y-1">
+                            {!isSidebarCollapsed && (
+                                <h3 className="px-3 mb-2 text-[10px] font-black text-muted/50 uppercase tracking-[0.2em]">
+                                    {category}
+                                </h3>
+                            )}
+                            {items.map((item: any) => {
+                                const isActive = location.pathname.startsWith(item.href);
+                                return (
+                                    <Link
+                                        key={item.name}
+                                        to={item.href}
+                                        onClick={() => setIsSidebarOpen(false)}
+                                        className={`
+                                            relative group flex items-center gap-3 px-3 py-2.5 rounded-lg
+                                            text-sm font-medium transition-all duration-200
+                                            ${isActive
+                                                ? 'text-primary dark:text-accent bg-primary/5 dark:bg-accent/10'
+                                                : 'text-muted hover:bg-main-hover hover:text-main dark:hover:text-gray-200'
+                                            }
+                                            ${isSidebarCollapsed ? 'justify-center' : ''}
+                                        `}
+                                        title={isSidebarCollapsed ? item.name : ''}
+                                    >
+                                        <item.icon
+                                            size={20}
+                                            className={`
+                                                transition-colors duration-200 flex-shrink-0
+                                                ${isActive ? 'text-primary dark:text-accent' : 'text-primary/40 dark:text-gray-500 group-hover:text-primary dark:group-hover:text-gray-300'}
+                                            `}
+                                        />
+                                        {!isSidebarCollapsed && (
+                                            <>
+                                                <span className="flex-1">{item.name}</span>
+                                                {isActive && (
+                                                    <motion.div
+                                                        layoutId="activeTabMarker"
+                                                        className="absolute right-3 w-1.5 h-1.5 rounded-full bg-primary dark:bg-accent"
+                                                    />
+                                                )}
+                                            </>
                                         )}
-                                    </>
-                                )}
-                            </Link>
-                        );
-                    })}
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    ))}
                 </nav>
 
                 {/* Sidebar Bottom - Logout Only */}

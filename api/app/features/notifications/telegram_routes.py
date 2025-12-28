@@ -47,7 +47,7 @@ async def telegram_webhook(request: Request):
                             int(doc_id_str),
                             VoucherUpdate(
                                 status=VoucherStatus.ISSUED,
-                                approved_by=user.username
+                                approved_by_id=user.id
                             )
                         )
                         await TelegramBot.send_message(
