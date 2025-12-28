@@ -35,7 +35,8 @@ async def telegram_webhook(request: Request):
                 # Get user (admin) by their private chat_id/user_id
                 user = await UserRepository.get_by_telegram_chat_id(str(user_id))
                 
-                if user and (user.role.value == "ADMIN" or user.role.value == "MANAGER"):
+                # Role values are lowercase in UserRole enum ('admin', 'manager')
+                if user and user.role.value.lower() in ["admin", "manager"]:
                     # Update document status
                     from app.features.documents.document_service import DocumentService
                     from app.features.documents.document_schema import DocumentUpdate
@@ -61,8 +62,12 @@ async def telegram_webhook(request: Request):
                             parse_mode="HTML"
                         )
                 else:
+                    role_found = user.role.value if user else "None"
                     await TelegramBot.send_message(
-                        "❌ <b>Access Denied</b>\nOnly admins or managers can approve documents.",
+                        f"❌ <b>Access Denied</b>\n"
+                        f"Only admins or managers can approve documents.\n\n"
+                        f"<b>Your ID:</b> <code>{user_id}</code>\n"
+                        f"<b>System Role:</b> <code>{role_found}</code>",
                         chat_id=str(chat_id),
                         parse_mode="HTML"
                     )
