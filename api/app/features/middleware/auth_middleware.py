@@ -15,13 +15,16 @@ class AuthMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         # 1. Check if route is public
-        # Handle both exact matches and prefix matches
         path = request.url.path
         
-        # Check for exact match or prefix match
+        # Explicit bypass for Telegram webhooks to avoid any matching issues
+        if path.startswith("/api/telegram"):
+            return await call_next(request)
+            
+        # Check for other public routes
         is_public = False
         for route in settings.PUBLIC_ROUTES:
-            if path == route or path.startswith(route + "/") or path.startswith(route):
+            if path == route or path.startswith(route + "/"):
                 is_public = True
                 break
         
