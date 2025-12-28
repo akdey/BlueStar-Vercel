@@ -15,9 +15,17 @@ class AuthMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         # 1. Check if route is public
-        # Using simple prefix matching for now, can be improved to regex if needed
+        # Handle both exact matches and prefix matches
         path = request.url.path
-        if any(path.startswith(route) for route in settings.PUBLIC_ROUTES):
+        
+        # Check for exact match or prefix match
+        is_public = False
+        for route in settings.PUBLIC_ROUTES:
+            if path == route or path.startswith(route + "/") or path.startswith(route):
+                is_public = True
+                break
+        
+        if is_public:
             return await call_next(request)
 
         # 2. Extract Token

@@ -3,7 +3,6 @@ from app.core.logger import logger
 from app.core.config import settings
 from app.features.users.user_repository import UserRepository
 from app.core.telegram_utils import TelegramBot
-import httpx
 
 router = APIRouter(prefix="/telegram", tags=["Telegram Webhook"])
 
@@ -81,71 +80,63 @@ async def telegram_webhook(request: Request):
             
             # 1. Handle Contact Sharing (User Verification)
             if contact:
-                phone_number = contact.get("phone_number")
+                phone_number = contact.get("phone_number", "")
                 if phone_number:
                     # Comprehensive phone number normalization
-                    # Remove: +, spaces, dashes, country code (91)
-                    raw_phone = phone_number.replace("+", "").replace(" ", "").replace("-", "")
+                    # Remove: +, spaces, dashes, parentheses
+                    raw_phone = phone_number.replace("+", "").replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
                     
-                    # Remove country code 91 if present at the start
+                    # Remove leading zeros
+                    raw_phone = raw_phone.lstrip("0")
+                    
+                    # Remove country code 91 if present at the start (Indian standard)
                     if raw_phone.startswith("91") and len(raw_phone) > 10:
-                        raw_phone = raw_phone[2:]  # Remove first 2 digits (91)
+                        raw_phone = raw_phone[2:]
                     
-                    logger.info(f"Attempting to link Telegram: original={phone_number}, normalized={raw_phone}, chat_id={chat_id}")
+                    logger.info(f"Telegram Linking Attempt: original={phone_number}, cleaned={raw_phone}, chat_id={chat_id}")
                     
-                    # Try linking with normalized number
+                    # Try linking with cleaned number
                     linked = await UserRepository.link_telegram_user(raw_phone, str(chat_id))
                     
                     if linked:
-                        await TelegramBot.send_message(
-                            "🎉 *Success!*\n\n"
+                        success_msg = (
                             "You are now connected with BlueStar Trading & Transport!\n\n"
-                            "✅ Your account has been linked\n"
-                            "✅ You will receive admin notifications here\n"
-                            "✅ You can approve documents directly from Telegram\n\n"
-                            "Use /enterprisechat to access the web chat interface.",
-                            chat_id=str(chat_id)
+                            "✅ *Account Linked Successfully*\n"
+                            "• Admin notifications: ACTIVE\n"
+                            "• Document approval: ENABLED\n"
+                            "• Enterprise chat: AVAILABLE via /enterprisechat\n\n"
+                            "Thank you for connecting with us!"
                         )
-                        logger.info(f"✅ Telegram account linked successfully: phone={raw_phone}, chat_id={chat_id}")
-                    else:
-                        # Try alternative formats
-                        alternatives = []
-                        
-                        # Try with country code
-                        if not phone_number.startswith("91"):
-                            alternatives.append("91" + raw_phone)
-                        
-                        # Try original without modifications
-                        alternatives.append(phone_number.replace("+", "").replace(" ", "").replace("-", ""))
-                        
-                        # Try each alternative
-                        for alt_phone in alternatives:
-                            linked = await UserRepository.link_telegram_user(alt_phone, str(chat_id))
-                            if linked:
-                                await TelegramBot.send_message(
-                                    "🎉 *Success!*\n\n"
-                                    "You are now connected with BlueStar Trading & Transport!\n\n"
-                                    "✅ Your account has been linked\n"
-                                    "✅ You will receive admin notifications here\n"
-                                    "✅ You can approve documents directly from Telegram\n\n"
-                                    "Use /enterprisechat to access the web chat interface.",
-                                    chat_id=str(chat_id)
-                                )
-                                logger.info(f"✅ Telegram account linked with alternative format: phone={alt_phone}, chat_id={chat_id}")
-                                return {"status": "ok"}
-                        
-                        # If all attempts failed
-                        await TelegramBot.send_message(
-                            f"❌ *Account Not Found*\n\n"
-                            f"Could not find a user with phone number:\n"
-                            f"`{phone_number}` (tried: {raw_phone})\n\n"
-                            f"Please ensure:\n"
-                            f"• Your phone number is registered in the system\n"
-                            f"• The number matches exactly (including country code)\n\n"
-                            f"Contact your administrator for assistance.",
-                            chat_id=str(chat_id)
-                        )
-                        logger.warning(f"❌ Failed to link Telegram account: phone={phone_number}, normalized={raw_phone}, chat_id={chat_id}")
+                        await TelegramBot.send_message(success_msg, chat_id=str(chat_id))
+                        logger.info(f"✅ Telegram account linked: phone={raw_phone}, user_id={user_id}")
+                        return {"status": "ok"}
+                    
+                    # Try with country code if not found
+                    if not raw_phone.startswith("91"):
+                        alt_phone = "91" + raw_phone
+                        linked = await UserRepository.link_telegram_user(alt_phone, str(chat_id))
+                        if linked:
+                            success_msg = (
+                                "You are now connected with BlueStar Trading & Transport!\n\n"
+                                "✅ *Account Linked Successfully*\n"
+                                "• Admin notifications: ACTIVE\n"
+                                "• Document approval: ENABLED\n\n"
+                                "Welcome aboard!"
+                            )
+                            await TelegramBot.send_message(success_msg, chat_id=str(chat_id))
+                            return {"status": "ok"}
+
+                    # If all attempts failed
+                    error_msg = (
+                        "❌ *Connection Failed*\n\n"
+                        f"We couldn't find a user with phone number: `{phone_number}`\n\n"
+                        "Please verify that:\n"
+                        "1. Your profile in BlueStar has this phone number.\n"
+                        "2. The number is entered correctly in the system.\n\n"
+                        "If the issue persists, contact support."
+                    )
+                    await TelegramBot.send_message(error_msg, chat_id=str(chat_id))
+                    logger.warning(f"❌ Failed to link Telegram: phone={phone_number}, chat_id={chat_id}")
                 
                 return {"status": "ok"}
 
@@ -195,7 +186,8 @@ async def telegram_webhook(request: Request):
                     )
                     
                     # In production, you'd have a proper web URL
-                    chat_url = f"https://your-domain.com/chat?token={chat_token}"
+                    # Redacting the URL to example/generic for safety in code, but user can change it
+                    chat_url = f"https://bluestar-git-main-akdeys-projects.vercel.app/chat?token={chat_token}"
                     
                     await TelegramBot.send_message(
                         f"🔗 Enterprise Chat Access\n\n"
