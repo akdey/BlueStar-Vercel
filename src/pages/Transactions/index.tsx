@@ -105,10 +105,10 @@ const Transactions = () => {
         {
             header: 'Links',
             id: 'links',
-            cell: (row: any) => row.document_id ? (
+            cell: (row: any) => row.voucher_id ? (
                 <div className="flex items-center gap-1 text-[9px] font-black text-primary uppercase">
                     <FileText size={12} />
-                    <span>Linked</span>
+                    <span>Linked VCH</span>
                 </div>
             ) : <span className="text-gray-200">—</span>
         }

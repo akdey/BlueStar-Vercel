@@ -7,7 +7,7 @@ from app.features.transactions.transaction_entity import TransactionType, Transa
 from app.features.parties.party_repository import PartyRepository
 from app.features.parties.party_entity import Party
 from app.features.parties.party_schema import PartyUpdate
-from app.features.documents.document_repository import DocumentRepository
+from app.features.vouchers.voucher_repository import VoucherRepository
 from app.core.logger import logger
 
 class TransactionService:
@@ -19,11 +19,11 @@ class TransactionService:
             if not party:
                 raise HTTPException(status_code=404, detail="Party not found")
         
-        # 2. Validate Document if provided
-        if txn_in.document_id:
-            doc = await DocumentRepository.get_by_id(txn_in.document_id)
-            if not doc:
-                raise HTTPException(status_code=404, detail="Document not found")
+        # 2. Validate Voucher if provided
+        if txn_in.voucher_id:
+            voucher = await VoucherRepository.get_by_id(txn_in.voucher_id)
+            if not voucher:
+                raise HTTPException(status_code=404, detail="Voucher not found")
         
         # 3. Create the Transaction Record
         # We assume status is COMPLETED for now to affect balance immediately

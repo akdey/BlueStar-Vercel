@@ -312,18 +312,18 @@ const Dashboard = () => {
                             </div>
                             <h4 className="text-lg font-black text-main uppercase tracking-tight mb-2">Advanced Forecasting</h4>
                             <p className="text-xs text-muted max-w-sm font-medium leading-relaxed">
-                                {/* Honest admission that development hasn't started */}
-                                This module is currently in the backlog. I'm focusing on stabilizing the core data ingestion first before I start building the prediction logic.
+                                {/* Real talk: Need data first, and I'm busy fixing the basics right now */}
+                                Can't predict the future without a past. I'm waiting for the system to collect enough sales history so the charts actually make sense. Once the data is solid and I've have time to build out the logic, I'll do it.
                             </p>
                             <div className="mt-6 flex gap-4">
                                 <div className="text-center">
-                                    <p className="text-[8px] font-black text-muted uppercase tracking-widest mb-1">Current Priority</p>
-                                    <p className="text-sm font-bold text-muted italic">P3 - Backlog</p>
+                                    <p className="text-[8px] font-black text-muted uppercase tracking-widest mb-1">Current Vibe</p>
+                                    <p className="text-sm font-bold text-muted italic">Collecting Data...</p>
                                 </div>
                                 <div className="w-px h-8 bg-theme mx-1" />
                                 <div className="text-center">
-                                    <p className="text-[8px] font-black text-muted uppercase tracking-widest mb-1">Dev Status</p>
-                                    <p className="text-sm font-bold text-main">Not Started</p>
+                                    <p className="text-[8px] font-black text-muted uppercase tracking-widest mb-1">Dev Priority</p>
+                                    <p className="text-sm font-bold text-main">On the Horizon</p>
                                 </div>
                             </div>
                         </div>

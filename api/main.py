@@ -14,7 +14,7 @@ from app.features.users.user_routes import router as user_router
 from app.features.parties.party_routes import router as party_router
 from app.features.transactions.transaction_routes import router as txn_router
 from app.features.inventory.inventory_routes import router as inventory_router
-from app.features.documents.document_routes import router as document_router
+from app.features.vouchers.voucher_routes import router as voucher_router
 from app.features.fleet.fleet_routes import router as fleet_router
 from app.features.trips.trip_routes import router as trip_router
 from app.features.dashboard.dashboard_routes import router as dashboard_router
@@ -74,7 +74,7 @@ app.include_router(user_router, prefix="/api")
 app.include_router(party_router, prefix="/api")
 app.include_router(txn_router, prefix="/api")
 app.include_router(inventory_router, prefix="/api")
-app.include_router(document_router, prefix="/api")
+app.include_router(voucher_router, prefix="/api")
 app.include_router(fleet_router, prefix="/api")
 app.include_router(trip_router, prefix="/api")
 app.include_router(dashboard_router, prefix="/api")

@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from sqlalchemy import select, func, and_
 from app.core.database import SessionLocal
-from app.features.documents.document_entity import TradeDocument, DocumentType, DocumentStatus
+from app.features.vouchers.voucher_entity import TradeVoucher, VoucherType, VoucherStatus
 from app.features.transactions.transaction_entity import Transaction, TransactionType
 from app.features.trips.trip_entity import Trip
 from app.features.parties.party_entity import Party
@@ -11,33 +11,40 @@ class DashboardRepository:
     @staticmethod
     async def get_sales_stats(start_date: datetime, end_date: datetime):
         async with SessionLocal() as db:
-            # Total Sales Value (Only Issued Invoices)
-            query = select(func.sum(TradeDocument.grand_total)).where(
+            # 1. Total Sales (Issued Invoices)
+            sales_query = select(
+                func.sum(TradeVoucher.grand_total),
+                func.count(TradeVoucher.id),
+                func.avg(TradeVoucher.grand_total)
+            ).where(
                 and_(
-                    TradeDocument.doc_type == DocumentType.INVOICE,
-                    TradeDocument.status == DocumentStatus.ISSUED,
-                    TradeDocument.doc_date >= start_date.date(), # doc_date is Date, inputs are datetime
-                    TradeDocument.doc_date <= end_date.date()
+                    TradeVoucher.voucher_type == VoucherType.INVOICE,
+                    TradeVoucher.status == VoucherStatus.ISSUED,
+                    TradeVoucher.voucher_date >= start_date.date(),
+                    TradeVoucher.voucher_date <= end_date.date()
                 )
             )
-            result = await db.execute(query)
-            total_sales = result.scalar() or 0.0
-            
-            logger.info(f"Dashboard Query: Found {total_sales} sales for period {start_date.date()} to {end_date.date()}")
-            
-            # Count of Invoices
-            query_count = select(func.count(TradeDocument.id)).where(
+            sales_result = await db.execute(sales_query)
+            total_sales, sales_count, avg_sales = sales_result.one()
+
+            # 2. Total Purchases (Issued Bills)
+            purchase_query = select(func.sum(TradeVoucher.grand_total)).where(
                 and_(
-                    TradeDocument.doc_type == DocumentType.INVOICE,
-                    TradeDocument.doc_date >= start_date.date(),
-                    TradeDocument.doc_date <= end_date.date()
+                    TradeVoucher.voucher_type == VoucherType.BILL,
+                    TradeVoucher.status == VoucherStatus.ISSUED,
+                    TradeVoucher.voucher_date >= start_date.date(),
+                    TradeVoucher.voucher_date <= end_date.date()
                 )
             )
-            # Adjust query for count
-            # result_count = await db.execute(query_count) # Let's skip precise count query for brevity if not needed, 
-            # actually count is cheap.
+            purchase_result = await db.execute(purchase_query)
+            total_purchases = purchase_result.scalar() or 0.0
             
-            return {"total_sales_value": total_sales}
+            return {
+                "total_sales_amount": total_sales or 0.0,
+                "sales_count": sales_count or 0,
+                "average_sales_value": float(avg_sales or 0.0),
+                "total_purchase_amount": total_purchases
+            }
 
     @staticmethod
     async def get_outstanding_balance():
@@ -136,14 +143,15 @@ class DashboardRepository:
             start_date = datetime.now() - timedelta(days=days)
             # Group invoices by date
             query = select(
-                TradeDocument.doc_date,
-                func.sum(TradeDocument.grand_total)
+                TradeVoucher.voucher_date,
+                func.sum(TradeVoucher.grand_total)
             ).where(
                 and_(
-                    TradeDocument.doc_type == DocumentType.INVOICE,
-                    TradeDocument.doc_date >= start_date.date()
+                    TradeVoucher.voucher_type == VoucherType.INVOICE,
+                    TradeVoucher.status == VoucherStatus.ISSUED,
+                    TradeVoucher.voucher_date >= start_date.date()
                 )
-            ).group_by(TradeDocument.doc_date).order_by(TradeDocument.doc_date)
+            ).group_by(TradeVoucher.voucher_date).order_by(TradeVoucher.voucher_date)
             
             result = await db.execute(query)
             return [{"date": str(row[0]), "amount": row[1]} for row in result.all()]

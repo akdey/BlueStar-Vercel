@@ -13,7 +13,6 @@ class Notification(Base):
     title: Mapped[str] = mapped_column(String(100), nullable=False)
     message: Mapped[str] = mapped_column(String(255), nullable=False)
     is_read: Mapped[bool] = mapped_column(Boolean, default=False)
-    # Type of notification (e.g., 'document_draft', 'system', 'alert')
     type: Mapped[str] = mapped_column(String(50), default="info") 
     link: Mapped[Optional[str]] = mapped_column(String(255), nullable=True) # Deep link to resource
 

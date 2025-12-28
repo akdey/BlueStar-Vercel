@@ -65,7 +65,7 @@ class TelegramBot:
 
     @staticmethod
     async def send_message_with_inline_buttons(message: str, chat_id: str, buttons: list, parse_mode: str = "HTML"):
-        """Send message with inline buttons (for document actions)"""
+        """Send message with inline buttons (for voucher actions)"""
         token = getattr(settings, "TELEGRAM_BOT_TOKEN", None)
         if not token:
             logger.warning("Telegram Bot Token not configured.")

@@ -5,7 +5,7 @@ from app.features.transactions.transaction_entity import TransactionType, Paymen
 
 class TransactionBase(BaseModel):
     party_id: Optional[int] = None
-    document_id: Optional[int] = None
+    voucher_id: Optional[int] = None
     transaction_type: TransactionType
     payment_mode: PaymentMode = PaymentMode.CASH
     amount: float = Field(..., gt=0)

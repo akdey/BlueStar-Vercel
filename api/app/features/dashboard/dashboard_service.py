@@ -103,21 +103,25 @@ class DashboardService:
             trip_data["total_driver_cost"]
         )
         
-        gross_trading_revenue = sales_data["total_sales_value"]
+        gross_trading_revenue = sales_data["total_sales_amount"]
+        gross_purchases = sales_data["total_purchase_amount"]
         trip_revenue = trip_data["total_freight_revenue"]
         
         # Consolidated Business Net Income
-        # Revenue from Trading + Revenue from Transport - Transport Operating Costs
-        business_net_income = (gross_trading_revenue + trip_revenue) - total_trip_expense
+        # (Trading Sales + Transport Rev) - (Operating Costs + Stock Purchase Costs)
+        business_net_income = (gross_trading_revenue + trip_revenue) - (total_trip_expense + gross_purchases)
         
         return {
             "period": period,
             "financial_summary": {
                 "sales_revenue": gross_trading_revenue,
+                "purchase_costs": gross_purchases,
                 "total_receivable": balance_data["total_receivable"],
                 "total_payable": balance_data["total_payable"],
                 "estimated_cash_flow": balance_data["total_receivable"] - balance_data["total_payable"],
-                "business_net_income": business_net_income
+                "business_net_income": business_net_income,
+                "sales_count": sales_data["sales_count"],
+                "avg_sale_value": sales_data["average_sales_value"]
             },
             "logistics_performance": {
                 "total_trips": trip_data["trip_count"],

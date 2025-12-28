@@ -14,7 +14,7 @@ import Users from './pages/Users';
 import Parties from './pages/Parties';
 import Inventory from './pages/Inventory';
 import Fleet from './pages/Fleet';
-import Documents from './pages/Documents';
+import Vouchers from './pages/Vouchers';
 import Trips from './pages/Trips';
 import Transactions from './pages/Transactions';
 import EnterpriseChat from './pages/EnterpriseChat';
@@ -23,7 +23,7 @@ import { useEffect } from 'react';
 
 function AppContent() {
   useEffect(() => {
-    document.title = import.meta.env.VITE_APP_TITLE || 'BLUE STAR | Trading & Co.';
+    document.title = import.meta.env.VITE_APP_TITLE;
   }, []);
 
   const { scrollYProgress } = useScroll();
@@ -49,7 +49,7 @@ function AppContent() {
             <Route path="/parties" element={<Parties />} />
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/fleet" element={<Fleet />} />
-            <Route path="/documents" element={<Documents />} />
+            <Route path="/vouchers" element={<Vouchers />} />
             <Route path="/trips" element={<Trips />} />
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/chat" element={<EnterpriseChat />} />

@@ -56,8 +56,8 @@ const Parties = () => {
                     className="flex flex-col cursor-pointer group"
                     onClick={() => handleView(party)}
                 >
-                    <span className="font-bold text-gray-900 dark:text-white group-hover:text-primary transition-colors">{party.name}</span>
-                    <span className="text-[10px] text-gray-400 font-mono uppercase tracking-tighter">{party.code}</span>
+                    <span className="font-bold text-main transition-colors group-hover:text-primary">{party.name}</span>
+                    <span className="text-[10px] text-muted font-mono uppercase tracking-widest">{party.code}</span>
                 </div>
             )
         },
@@ -74,9 +74,9 @@ const Parties = () => {
             header: 'Contact Info',
             accessorKey: 'phone' as keyof Party,
             cell: (party: Party) => (
-                <div className="flex flex-col text-xs">
-                    <span className="text-gray-700 dark:text-gray-300">{party.mobile || party.phone || 'N/A'}</span>
-                    <span className="text-gray-400 italic">{party.contact_person || 'No Contact'}</span>
+                <div className="flex flex-col text-[11px] font-bold">
+                    <span className="text-main">{party.mobile || party.phone || 'N/A'}</span>
+                    <span className="text-muted italic">{party.contact_person || 'No Contact'}</span>
                 </div>
             )
         },
@@ -105,15 +105,15 @@ const Parties = () => {
                 <div className="flex items-center gap-1">
                     <button
                         onClick={() => handleView(party)}
-                        className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 rounded-lg transition-all"
-                        title="View Details"
+                        className="p-2 text-muted hover:text-primary hover:bg-main-hover rounded-lg transition-all"
+                        title="View Ledger & Profile"
                     >
                         <Eye size={16} />
                     </button>
                     <button
                         onClick={() => handleEdit(party)}
-                        className="p-2 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
-                        title="Edit Party"
+                        className="p-2 text-muted hover:text-secondary hover:bg-main-hover rounded-lg transition-all"
+                        title="Edit Record"
                     >
                         <Edit2 size={16} />
                     </button>
@@ -132,15 +132,15 @@ const Parties = () => {
 
             {/* Search Bar */}
             <div className="relative max-w-md">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search size={18} className="text-gray-400" />
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Search size={16} className="text-muted" />
                 </div>
                 <input
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search by name, code or phone..."
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
+                    className="block w-full pl-11 pr-4 py-3 border border-theme rounded-2xl bg-card text-[10px] font-bold uppercase tracking-widest placeholder-muted focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all shadow-sm text-main"
                 />
             </div>
 

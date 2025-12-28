@@ -17,8 +17,8 @@ class IDGenerator:
             return f"{prefix}-{str(count + 1).zfill(3)}"
 
     @staticmethod
-    async def generate_doc_number(prefix: str, entity_class) -> str:
-        """Generates a document number like INV-2023-001."""
+    async def generate_voucher_number(prefix: str, entity_class) -> str:
+        """Generates a voucher number like INV-2023-001."""
         from datetime import datetime
         year = datetime.now().year
         

@@ -16,6 +16,13 @@ class Settings(BaseSettings):
     TELEGRAM_BOT_TOKEN: str = ""
     TELEGRAM_CHAT_ID: str = ""
     
+    # SMTP Settings (Gmail)
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = "" # To be provided in env
+    SMTP_PASSWORD: str = "" # To be provided in env (App Password)
+    EMAIL_FROM: str = "BlueStar Trading & Transport <noreply@bluestar.com>"
+    
     # CORS Settings
     CORS_ORIGINS: List[str] = [
         "http://localhost:3000", 

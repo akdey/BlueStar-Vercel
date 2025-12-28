@@ -55,7 +55,7 @@ const DashboardLayout = () => {
         { name: 'Parties', href: '/parties', icon: NotebookTabs },
         { name: 'Inventory', href: '/inventory', icon: Package },
         { name: 'Fleet', href: '/fleet', icon: Truck },
-        { name: 'Documents', href: '/documents', icon: FileText },
+        { name: 'Trade Vouchers', href: '/vouchers', icon: FileText },
         { name: 'Trips', href: '/trips', icon: MapPin },
         { name: 'Transactions', href: '/transactions', icon: CircleDollarSign },
         { name: 'Enterprise Chat', href: '/chat', icon: MessageSquare },

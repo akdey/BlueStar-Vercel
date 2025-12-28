@@ -55,7 +55,7 @@ const baseQueryWithReauth: typeof baseQuery = async (args, api, extraOptions) =>
 export const apiSlice = createApi({
     reducerPath: 'api',
     baseQuery: baseQueryWithReauth,
-    tagTypes: ['User', 'Party', 'Item', 'Vehicle', 'Driver', 'Document', 'Trip', 'Transaction'],
+    tagTypes: ['User', 'Party', 'Item', 'Vehicle', 'Driver', 'Voucher', 'Trip', 'Transaction'],
     endpoints: (builder) => ({
         // Auth
         login: builder.mutation({
@@ -235,37 +235,37 @@ export const apiSlice = createApi({
             invalidatesTags: (_result, _error, arg) => ['Driver', { type: 'Driver', id: arg.driverId }],
         }),
 
-        // Documents
-        getDocuments: builder.query({
+        // Vouchers
+        getVouchers: builder.query({
             query: (params) => ({
-                url: '/documents/',
+                url: '/vouchers/',
                 params,
             }),
-            providesTags: ['Document'],
+            providesTags: ['Voucher'],
         }),
-        getDocument: builder.query({
-            query: (docId) => `/documents/${docId}`,
-            providesTags: (_result, _error, id) => [{ type: 'Document' as const, id }],
+        getVoucher: builder.query({
+            query: (docId) => `/vouchers/${docId}`,
+            providesTags: (_result, _error, id) => [{ type: 'Voucher' as const, id }],
         }),
-        createDocument: builder.mutation({
-            query: (documentData) => ({
-                url: '/documents/',
+        createVoucher: builder.mutation({
+            query: (voucherData) => ({
+                url: '/vouchers/',
                 method: 'POST',
-                body: documentData,
+                body: voucherData,
             }),
-            invalidatesTags: ['Document'],
+            invalidatesTags: ['Voucher'],
         }),
-        updateDocument: builder.mutation({
-            query: ({ docId, documentData }) => ({
-                url: `/documents/${docId}`,
+        updateVoucher: builder.mutation({
+            query: ({ docId, voucherData }) => ({
+                url: `/vouchers/${docId}`,
                 method: 'PATCH',
-                body: documentData,
+                body: voucherData,
             }),
-            invalidatesTags: (_result, _error, arg) => ['Document', 'Transaction', 'Party', 'Item'],
+            invalidatesTags: (_result, _error, arg) => ['Voucher', 'Transaction', 'Party', 'Item'],
         }),
-        getDocumentsByParty: builder.query({
-            query: (partyId) => `/documents/party/${partyId}`,
-            providesTags: ['Document'],
+        getVouchersByParty: builder.query({
+            query: (partyId) => `/vouchers/party/${partyId}`,
+            providesTags: ['Voucher'],
         }),
 
         // Trips
@@ -400,11 +400,11 @@ export const {
     useGetDriversQuery,
     useCreateDriverMutation,
     useUpdateDriverMutation,
-    useGetDocumentsQuery,
-    useGetDocumentQuery,
-    useCreateDocumentMutation,
-    useUpdateDocumentMutation,
-    useGetDocumentsByPartyQuery,
+    useGetVouchersQuery,
+    useGetVoucherQuery,
+    useCreateVoucherMutation,
+    useUpdateVoucherMutation,
+    useGetVouchersByPartyQuery,
     useGetTripsQuery,
     useGetTripQuery,
     useCreateTripMutation,

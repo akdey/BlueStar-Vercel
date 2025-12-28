@@ -30,7 +30,7 @@ class Transaction(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     party_id: Mapped[Optional[int]] = mapped_column(ForeignKey("parties.id"), index=True)
-    document_id: Mapped[Optional[int]] = mapped_column(ForeignKey("trade_documents.id"), index=True)
+    voucher_id: Mapped[Optional[int]] = mapped_column(ForeignKey("trade_vouchers.id"), index=True)
     
     transaction_type: Mapped[TransactionType] = mapped_column(Enum(TransactionType), index=True, nullable=False)
     payment_mode: Mapped[PaymentMode] = mapped_column(Enum(PaymentMode), default=PaymentMode.CASH)

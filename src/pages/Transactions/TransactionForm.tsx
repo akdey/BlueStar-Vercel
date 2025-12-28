@@ -18,7 +18,7 @@ import Button from '../../components/UI/Button';
 import {
     useCreateTransactionMutation,
     useGetPartiesQuery,
-    useGetDocumentsByPartyQuery
+    useGetVouchersByPartyQuery
 } from '../../features/api/apiSlice';
 import { toast } from 'react-toastify';
 
@@ -31,7 +31,7 @@ const transactionSchema = yup.object({
     transaction_type: yup.string().oneOf(['payment_in', 'payment_out', 'expense', 'transfer']).required('Type is required'),
     amount: yup.number().min(0.01, 'Amount must be > 0').required('Amount is required'),
     payment_mode: yup.string().oneOf(['cash', 'upi', 'bank_transfer', 'cheque']).required('Mode is required'),
-    document_id: yup.number().transform((val) => (isNaN(val) ? null : val)).nullable().optional(),
+    voucher_id: yup.number().transform((val) => (isNaN(val) ? null : val)).nullable().optional(),
     reference_number: yup.string().optional().nullable(),
     transaction_date: yup.string().required('Date is required'),
     description: yup.string().optional().nullable(),
@@ -51,14 +51,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSuccess }) => {
 
     const selectedPartyId = useWatch({ control, name: 'party_id' });
     const { data: parties } = useGetPartiesQuery({});
-    const { data: documents } = useGetDocumentsByPartyQuery(selectedPartyId!, {
+    const { data: vouchers } = useGetVouchersByPartyQuery(selectedPartyId!, {
         skip: !selectedPartyId
     });
 
     const [createTransaction, { isLoading: isSubmitting }] = useCreateTransactionMutation();
 
     useEffect(() => {
-        if (!selectedPartyId) setValue('document_id', null);
+        if (!selectedPartyId) setValue('voucher_id', null as any);
     }, [selectedPartyId, setValue]);
 
     const onSubmit = async (data: TransactionFormData) => {
@@ -151,16 +151,16 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSuccess }) => {
                             placeholder="TXN123456..."
                         />
                         <Select
-                            label="Link to Document"
-                            registration={register('document_id' as any)}
-                            error={errors.document_id?.message}
-                            options={documents?.data?.map((d: any) => ({
-                                value: d.id,
-                                label: `${d.doc_type?.toUpperCase()}: ${d.doc_number || d.id}`
+                            label="Link to Trade Voucher"
+                            registration={register('voucher_id' as any)}
+                            error={errors.voucher_id?.message}
+                            options={vouchers?.data?.map((v: any) => ({
+                                value: v.id,
+                                label: `${v.doc_type?.toUpperCase()}: ${v.doc_number || v.id}`
                             })) || []}
                             placeholder={selectedPartyId ? "Optional: Search Bills/Challans" : "Select Party First"}
                             disabled={!selectedPartyId}
-                            tooltip="Associate this payment with a specific invoice or challan for reconciliation."
+                            tooltip="Associate this payment with a specific trade voucher for reconciliation."
                         />
                     </div>
                 </div>
