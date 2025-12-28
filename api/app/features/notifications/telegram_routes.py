@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Request, status
 from app.core.logger import logger
 from app.core.config import settings
-from app.features.users.user_repository import UserRepository
 from app.core.telegram_utils import TelegramBot
 
 router = APIRouter(prefix="/telegram", tags=["Telegram Webhook"])
@@ -11,6 +10,9 @@ async def telegram_webhook(request: Request):
     """
     Handle incoming Telegram updates (messages, callback queries, etc.).
     """
+    # Move repository import inside the function to avoid circular imports and scoping issues
+    from app.features.users.user_repository import UserRepository
+    
     try:
         data = await request.json()
         logger.info(f"Received Telegram Update: {data}")
@@ -31,7 +33,6 @@ async def telegram_webhook(request: Request):
                 user_id = callback.get("from", {}).get("id")
                 
                 # Get user from chat_id
-                from app.features.users.user_repository import UserRepository
                 user = await UserRepository.get_by_telegram_chat_id(str(user_id))
                 
                 if user and user.role.value == "ADMIN":
@@ -141,8 +142,7 @@ async def telegram_webhook(request: Request):
             
             elif text.startswith("/status"):
                 try:
-                    # Check DB
-                    from app.features.users.user_repository import UserRepository
+                    # Use function-level UserRepository
                     user = await UserRepository.get_by_telegram_chat_id(str(chat_id))
                     status_text = "🟢 *System Status*\n\n"
                     status_text += f"• Database: CONNECTED\n"
@@ -155,6 +155,24 @@ async def telegram_webhook(request: Request):
             
             elif text.startswith("/id"):
                 await TelegramBot.send_message(f"Your Chat ID: `{chat_id}`", chat_id=str(chat_id))
+            
+            elif text.startswith("/enterprisechat"):
+                # Link to enterprise chat
+                user = await UserRepository.get_by_telegram_chat_id(str(chat_id))
+                if user:
+                    from app.features.users.user_helper import AuthHelper
+                    from datetime import timedelta
+                    chat_token = AuthHelper.create_access_token(
+                        data={"sub": user.username, "id": user.id, "role": str(user.role.value)},
+                        expires_delta=timedelta(hours=24)
+                    )
+                    chat_url = f"https://bluestar.akdey.vercel.app/chat?token={chat_token}"
+                    await TelegramBot.send_message(
+                        f"🔗 Enterprise Chat Access\n\nClick the link below to access:\n{chat_url}\n\nValid for 24 hours.",
+                        chat_id=str(chat_id)
+                    )
+                else:
+                    await TelegramBot.send_message("❌ Please link your account first using /start", chat_id=str(chat_id))
 
         return {"status": "ok"}
 
