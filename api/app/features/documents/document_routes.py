@@ -40,13 +40,48 @@ async def create_document(
         user_id=None # Broadcast to admins/dashboard
     ))
 
-    # 2. Telegram Notification (To all Admins)
+    # 2. Telegram Notification (To all Admins) - Enhanced with HTML and Buttons
     from app.features.users.user_repository import UserRepository
-    admin_chat_ids = await UserRepository.get_admins_with_telegram()
+    from app.features.parties.party_repository import PartyRepository
     
+    admin_chat_ids = await UserRepository.get_admins_with_telegram()
+    party = await PartyRepository.get_by_id(doc.party_id)
+    party_name = party.name if party else "Unknown"
+    
+    # Build items summary (using pydantic model 'doc')
+    items_text = ""
+    if doc.items:
+        items_text = "<b>Items:</b>\n"
+        for item in doc.items:
+            # Note: We don't have item name here easily without extra query, showing qty/rate
+            items_text += f"• {item.quantity} x ₹{item.rate} = ₹{item.amount:,.2f}\n"
+        items_text += "➖➖➖➖➖➖➖➖➖➖\n"
+
+    html_message = (
+        f"📄 <b>New {doc.doc_type.value.upper()} Created</b>\n\n"
+        f"<b>No:</b> <code>{doc.doc_number}</code>\n"
+        f"<b>Party:</b> {party_name}\n"
+        f"➖➖➖➖➖➖➖➖➖➖\n"
+        f"{items_text}"
+        f"<b>Tax:</b> ₹{doc.tax_amount:,.2f}\n"
+        f"<b>Grand Total:</b> <b>₹{doc.grand_total:,.2f}</b>\n\n"
+        f"👤 <b>Created by:</b> {current_user.username}\n"
+        f"📅 <b>Date:</b> {doc.created_at.strftime('%Y-%m-%d %H:%M')}\n\n"
+        f"<i>Choose an action:</i>"
+    )
+    
+    inline_buttons = [
+        [
+            {"text": "✅ Approve & Issue", "callback_data": f"approve_doc:{doc.id}"},
+            {"text": "❌ Cancel", "callback_data": f"reject_doc:{doc.id}"}
+        ]
+    ]
+
     send_telegram_notification_background(
-        f"📄 *New Draft Created*\n\nType: {doc.doc_type.value}\nNumber: `{doc.doc_number}`\nUser: {current_user.username}",
-        chat_ids=admin_chat_ids
+        html_message,
+        chat_ids=admin_chat_ids,
+        inline_buttons=inline_buttons,
+        parse_mode="HTML"
     )
 
     return JSONResponse(

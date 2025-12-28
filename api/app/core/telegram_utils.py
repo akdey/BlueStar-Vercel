@@ -13,7 +13,7 @@ class TelegramBot:
     BASE_URL = "https://api.telegram.org/bot"
 
     @staticmethod
-    async def send_message(message: str, chat_id: str = None):
+    async def send_message(message: str, chat_id: str = None, parse_mode: str = "HTML"):
         token = getattr(settings, "TELEGRAM_BOT_TOKEN", None)
         # Use provided chat_id or fall back to global one
         target_chat_id = chat_id or getattr(settings, "TELEGRAM_CHAT_ID", None)
@@ -26,7 +26,7 @@ class TelegramBot:
         payload = {
             "chat_id": target_chat_id,
             "text": message,
-            "parse_mode": "Markdown"
+            "parse_mode": parse_mode
         }
 
         try:
@@ -40,7 +40,7 @@ class TelegramBot:
             logger.error(f"Error sending Telegram notification: {str(e)}")
 
     @staticmethod
-    async def send_message_with_keyboard(message: str, chat_id: str, keyboard: dict):
+    async def send_message_with_keyboard(message: str, chat_id: str, keyboard: dict, parse_mode: str = "HTML"):
         """Send message with custom keyboard (e.g., contact request button)"""
         token = getattr(settings, "TELEGRAM_BOT_TOKEN", None)
         if not token:
@@ -51,6 +51,7 @@ class TelegramBot:
         payload = {
             "chat_id": chat_id,
             "text": message,
+            "parse_mode": parse_mode,
             "reply_markup": keyboard
         }
 
@@ -63,7 +64,7 @@ class TelegramBot:
             logger.error(f"Error sending Telegram message with keyboard: {str(e)}")
 
     @staticmethod
-    async def send_message_with_inline_buttons(message: str, chat_id: str, buttons: list):
+    async def send_message_with_inline_buttons(message: str, chat_id: str, buttons: list, parse_mode: str = "HTML"):
         """Send message with inline buttons (for document actions)"""
         token = getattr(settings, "TELEGRAM_BOT_TOKEN", None)
         if not token:
@@ -74,7 +75,7 @@ class TelegramBot:
         payload = {
             "chat_id": chat_id,
             "text": message,
-            "parse_mode": "Markdown",
+            "parse_mode": parse_mode,
             "reply_markup": {
                 "inline_keyboard": buttons
             }
@@ -107,16 +108,16 @@ class TelegramBot:
             logger.error(f"Error answering callback: {str(e)}")
 
 # Helper/wrapper to fire and forget
-def send_telegram_notification_background(message: str, chat_ids: list[str] = None, inline_buttons: list = None):
+def send_telegram_notification_background(message: str, chat_ids: list[str] = None, inline_buttons: list = None, parse_mode: str = "HTML"):
     # If explicit list, send to all. Else default global.
     if chat_ids:
         for cid in chat_ids:
             if inline_buttons:
-                asyncio.create_task(TelegramBot.send_message_with_inline_buttons(message, chat_id=cid, buttons=inline_buttons))
+                asyncio.create_task(TelegramBot.send_message_with_inline_buttons(message, chat_id=cid, buttons=inline_buttons, parse_mode=parse_mode))
             else:
-                asyncio.create_task(TelegramBot.send_message(message, chat_id=cid))
+                asyncio.create_task(TelegramBot.send_message(message, chat_id=cid, parse_mode=parse_mode))
     else:
         if inline_buttons:
-            asyncio.create_task(TelegramBot.send_message_with_inline_buttons(message, chat_id=settings.TELEGRAM_CHAT_ID, buttons=inline_buttons))
+            asyncio.create_task(TelegramBot.send_message_with_inline_buttons(message, chat_id=settings.TELEGRAM_CHAT_ID, buttons=inline_buttons, parse_mode=parse_mode))
         else:
-            asyncio.create_task(TelegramBot.send_message(message))
+            asyncio.create_task(TelegramBot.send_message(message, parse_mode=parse_mode))

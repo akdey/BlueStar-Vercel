@@ -29,44 +29,50 @@ async def telegram_webhook(request: Request):
             
             # Handle document approval actions
             if callback_data.startswith("approve_doc:"):
-                doc_id = callback_data.split(":")[1]
-                user_id = callback.get("from", {}).get("id")
+                doc_id_str = callback_data.split(":")[1]
+                user_id = callback.get("from", {}).get("id") # Use person who clicked
                 
-                # Get user from chat_id
+                # Get user (admin) by their private chat_id/user_id
                 user = await UserRepository.get_by_telegram_chat_id(str(user_id))
                 
-                if user and user.role.value == "ADMIN":
+                if user and (user.role.value == "ADMIN" or user.role.value == "MANAGER"):
                     # Update document status
                     from app.features.documents.document_service import DocumentService
                     from app.features.documents.document_schema import DocumentUpdate
                     from app.features.documents.document_entity import DocumentStatus
                     
                     try:
-                        await DocumentService.update_document(
-                            int(doc_id),
+                        doc = await DocumentService.update_document(
+                            int(doc_id_str),
                             DocumentUpdate(status=DocumentStatus.ISSUED)
                         )
                         await TelegramBot.send_message(
-                            f"✅ Document #{doc_id} has been ISSUED by {user.username}",
-                            chat_id=str(chat_id)
+                            f"✅ <b>Document {doc.doc_number} Issued</b>\n\n"
+                            f"Action performed by: <b>{user.username}</b>\n"
+                            f"Status updated to: <code>ISSUED</code>",
+                            chat_id=str(chat_id),
+                            parse_mode="HTML"
                         )
-                        logger.info(f"Document {doc_id} issued via Telegram by {user.username}")
+                        logger.info(f"Document {doc.doc_number} issued via Telegram by {user.username}")
                     except Exception as e:
                         await TelegramBot.send_message(
-                            f"❌ Error issuing document: {str(e)}",
-                            chat_id=str(chat_id)
+                            f"❌ <b>Error issuing document:</b>\n{str(e)}",
+                            chat_id=str(chat_id),
+                            parse_mode="HTML"
                         )
                 else:
                     await TelegramBot.send_message(
-                        "❌ Only admins can approve documents.",
-                        chat_id=str(chat_id)
+                        "❌ <b>Access Denied</b>\nOnly admins or managers can approve documents.",
+                        chat_id=str(chat_id),
+                        parse_mode="HTML"
                     )
             
             elif callback_data.startswith("reject_doc:"):
                 doc_id = callback_data.split(":")[1]
                 await TelegramBot.send_message(
-                    f"Document #{doc_id} action cancelled.",
-                    chat_id=str(chat_id)
+                    f"🛑 <b>Action Cancelled</b>\nDocument #{doc_id} was not modified.",
+                    chat_id=str(chat_id),
+                    parse_mode="HTML"
                 )
             
             return {"status": "ok"}
@@ -131,30 +137,30 @@ async def telegram_webhook(request: Request):
             # 2. Handle Commands
             if text.startswith("/start"):
                 welcome_text = (
-                    "👋 Welcome to BlueStar Bot!\n\n"
-                    "Share your contact using the button below to link your account."
+                    "👋 <b>Welcome to BlueStar Bot!</b>\n\n"
+                    "Please share your contact using the button below to link your account and receive notifications."
                 )
                 keyboard = {
                     "keyboard": [[{"text": "📱 Share Contact", "request_contact": True}]],
                     "resize_keyboard": True, "one_time_keyboard": True
                 }
-                await TelegramBot.send_message_with_keyboard(welcome_text, chat_id=str(chat_id), keyboard=keyboard)
+                await TelegramBot.send_message_with_keyboard(welcome_text, chat_id=str(chat_id), keyboard=keyboard, parse_mode="HTML")
             
             elif text.startswith("/status"):
                 try:
                     # Use function-level UserRepository
                     user = await UserRepository.get_by_telegram_chat_id(str(chat_id))
-                    status_text = "🟢 *System Status*\n\n"
-                    status_text += f"• Database: CONNECTED\n"
-                    status_text += f"• Your Account: {'LINKED' if user else 'NOT LINKED'}\n"
+                    status_text = "🟢 <b>System Status</b>\n\n"
+                    status_text += f"• <b>Database:</b> CONNECTED\n"
+                    status_text += f"• <b>Your Account:</b> {'LINKED ✅' if user else 'NOT LINKED ❌'}\n"
                     if user:
-                        status_text += f"• Role: {user.role.value}\n"
-                    await TelegramBot.send_message(status_text, chat_id=str(chat_id))
+                        status_text += f"• <b>Role:</b> <code>{user.role.value.upper()}</code>\n"
+                    await TelegramBot.send_message(status_text, chat_id=str(chat_id), parse_mode="HTML")
                 except Exception as e:
-                    await TelegramBot.send_message(f"🔴 *System Status*\n\n• Database: ERROR ({str(e)[:50]})", chat_id=str(chat_id))
+                    await TelegramBot.send_message(f"🔴 <b>System Status</b>\n\n• <b>Database:</b> ERROR (<code>{str(e)[:50]}</code>)", chat_id=str(chat_id), parse_mode="HTML")
             
             elif text.startswith("/id"):
-                await TelegramBot.send_message(f"Your Chat ID: `{chat_id}`", chat_id=str(chat_id))
+                await TelegramBot.send_message(f"🆔 <b>Your Chat ID:</b> <code>{chat_id}</code>", chat_id=str(chat_id), parse_mode="HTML")
             
             elif text.startswith("/enterprisechat"):
                 # Link to enterprise chat
@@ -166,13 +172,18 @@ async def telegram_webhook(request: Request):
                         data={"sub": user.username, "id": user.id, "role": str(user.role.value)},
                         expires_delta=timedelta(hours=24)
                     )
+                    # Using the actual Vercel URL provided by the user
                     chat_url = f"https://bluestar.akdey.vercel.app/chat?token={chat_token}"
                     await TelegramBot.send_message(
-                        f"🔗 Enterprise Chat Access\n\nClick the link below to access:\n{chat_url}\n\nValid for 24 hours.",
-                        chat_id=str(chat_id)
+                        f"🔗 <b>Enterprise Chat Access</b>\n\n"
+                        f"Click the link below to access the enterprise chat interface:\n\n"
+                        f"<a href='{chat_url}'>Launch BlueStar Chat</a>\n\n"
+                        f"<i>Token is valid for 24 hours.</i>",
+                        chat_id=str(chat_id),
+                        parse_mode="HTML"
                     )
                 else:
-                    await TelegramBot.send_message("❌ Please link your account first using /start", chat_id=str(chat_id))
+                    await TelegramBot.send_message("❌ <b>Account Not Linked</b>\nPlease use /start to link your account first.", chat_id=str(chat_id), parse_mode="HTML")
 
         return {"status": "ok"}
 
