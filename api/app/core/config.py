@@ -33,7 +33,7 @@ class Settings(BaseSettings):
         "/openapi.json", 
         "/api/auth/login",
         "/api/users/change-password",
-        "/api/users/register"
+        "/api/telegram/webhook"
     ]
     
     ENV: str = "development"
