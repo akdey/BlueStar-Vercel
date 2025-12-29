@@ -13,6 +13,9 @@ ROLE_MAPPING = {
     
     # Parties
     r"DELETE:^/parties/\d+$": [UserRole.ADMIN],                # Only Admin can delete parties
+
+    # Vouchers
+    r"PATCH:^/api/vouchers/issue/\d+$": [UserRole.ADMIN],      # Only Admin can issue vouchers
     
     # Default policy for other routes:
     # If not matched, we grant access to all authenticated users by default? 

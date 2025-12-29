@@ -30,7 +30,12 @@ interface VoucherDetailsProps {
     onStatusChange?: () => void;
 }
 
+import { useSelector } from 'react-redux';
+
+// ... (props interface)
+
 const VoucherDetails: React.FC<VoucherDetailsProps> = ({ voucherId, onStatusChange }) => {
+    const { user } = useSelector((state: any) => state.auth);
     const { data: response, isLoading: isFetching, refetch } = useGetVoucherQuery(voucherId);
     const [updateVoucher, { isLoading: isStatusUpdating }] = useUpdateVoucherMutation();
     const [showPreview, setShowPreview] = React.useState(false);
@@ -199,7 +204,7 @@ const VoucherDetails: React.FC<VoucherDetailsProps> = ({ voucherId, onStatusChan
             </div>
 
             {/* Finalization Action Banner */}
-            {isDraft && (
+            {isDraft && user?.role === 'admin' && (
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}

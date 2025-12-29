@@ -14,7 +14,8 @@ import {
     Fuel,
     Receipt,
     PlusCircle,
-    Loader2
+    Loader2,
+    Edit
 } from 'lucide-react';
 import LiveTripMonitoring from '../../components/Trips/LiveTripMonitoring';
 import Badge from '../../components/Shared/Badge';
@@ -162,9 +163,10 @@ const TripDetails: React.FC<TripDetailsProps> = ({ trip, refetch, onEdit }) => {
                             {onEdit && (
                                 <button
                                     onClick={onEdit}
-                                    className="text-[10px] bg-white/10 hover:bg-white/20 text-white px-3 py-1 rounded-lg uppercase font-bold tracking-wider transition-all"
+                                    className="flex items-center gap-1.5 text-[10px] bg-white/10 hover:bg-white/20 text-white px-3 py-1 rounded-lg uppercase font-bold tracking-wider transition-all"
                                 >
-                                    Edit Mission Data
+                                    <Edit size={12} />
+                                    <span>Edit Mission Data</span>
                                 </button>
                             )}
                         </div>
