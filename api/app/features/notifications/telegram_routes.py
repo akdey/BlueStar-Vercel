@@ -86,7 +86,13 @@ async def telegram_webhook(request: Request):
             return {"status": "ok"}
 
         # Handle Messages and Edited Messages (Live Location updates come as edited_message)
-        message = data.get("message") or data.get("edited_message")
+        # We need to distinguish because initial share is a 'message', updates are 'edited_message'
+        
+        msg_data = data.get("message")
+        edited_msg_data = data.get("edited_message")
+        
+        # We process whichever exists. If both (unlikely in one update), prefer message? usually mutually exclusive.
+        message = msg_data or edited_msg_data
         
         if message:
             chat_id = message.get("chat", {}).get("id")
@@ -94,8 +100,8 @@ async def telegram_webhook(request: Request):
             contact = message.get("contact")
             user_id = message.get("from", {}).get("id")
             
-            # 1. Handle Contact Sharing (User Verification) - Only on fresh messages
-            if contact and "message" in data:
+            # 1. Handle Contact Sharing (User Verification) - Only on fresh messages (not edits)
+            if contact and msg_data: # Only process contact if it's a new message
                 phone_number = contact.get("phone_number", "")
                 await TelegramBot.send_message(f"📩 Received contact ({phone_number}). Processing... ⏳", chat_id=str(chat_id))
                 
@@ -157,22 +163,24 @@ async def telegram_webhook(request: Request):
             # 2. Handle Location Updates
             location = message.get("location")
             if location:
-                # Enforce Live Location
-                # 'live_period' is a field in Location object if it is a live location
+                # Debug Logging
+                logger.info(f"📍 Location Rx: {location} | IsEdit: {bool(edited_msg_data)}")
+                print(f"------Location Rx: {location} | IsEdit: {bool(edited_msg_data)}")
+                # Check for Live Location
                 live_period = location.get("live_period")
                 
-                # If it's a static location sharing (no live_period), we ask the user to switch.
-                # However, edited_messages (live updates) also contain the location.
-                # Let's check if it's a fresh message without live_period.
-                
+                # If it's a static location sharing (no live_period), we reject it.
                 if not live_period:
-                     await TelegramBot.send_message(
-                        "⚠️ <b>Live Location Required</b>\n\n"
-                        "We need your <b>Live Location</b> to track this trip, not a static point.\n\n"
-                        "Please tap 📎 -> <b>Location</b> -> <b>Share My Live Location</b>.",
-                        chat_id=str(chat_id),
-                        parse_mode="HTML"
-                    )
+                     # Only send rejection warning if it's a FRESH message. 
+                     # If it's an edit without live_period (unlikely for live loc, but possible logic quirk), ignore to avoid spam loop.
+                     if msg_data: 
+                         await TelegramBot.send_message(
+                            "⚠️ <b>Live Location Required</b>\n\n"
+                            "This looks like a static location.\n"
+                            "Please tap 📎 -> <b>Location</b> -> <b>Share My Live Location</b> for 1 or 8 hours.",
+                            chat_id=str(chat_id),
+                            parse_mode="HTML"
+                        )
                      return {"status": "ok"}
 
                 lat = location.get("latitude")
