@@ -78,6 +78,11 @@ class TripResponse(TripBase):
     # Individual Expenses
     expenses: List[TripExpenseResponse] = []
     
+    # Live Tracking
+    current_lat: Optional[float] = None
+    current_lng: Optional[float] = None
+    last_tracking_at: Optional[datetime] = None
+    
     created_at: datetime
     updated_at: datetime
     model_config = ConfigDict(from_attributes=True)

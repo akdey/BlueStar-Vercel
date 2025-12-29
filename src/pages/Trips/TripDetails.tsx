@@ -16,6 +16,7 @@ import {
     PlusCircle,
     Loader2
 } from 'lucide-react';
+import LiveTripMonitoring from '../../components/Trips/LiveTripMonitoring';
 import Badge from '../../components/Shared/Badge';
 import Button from '../../components/UI/Button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -142,6 +143,15 @@ const TripDetails: React.FC<TripDetailsProps> = ({ trip, refetch }) => {
                     </div>
                 </div>
             </div>
+
+            {/* Live Monitoring */}
+            {trip.status === 'in_transit' && (
+                <LiveTripMonitoring
+                    tripId={trip.id}
+                    initialLat={Number(trip.current_lat || trip.start_lat || 20.5937)}
+                    initialLng={Number(trip.current_lng || trip.start_lng || 78.9629)}
+                />
+            )}
 
             {/* Financial Dashboard */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

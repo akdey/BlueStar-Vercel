@@ -50,6 +50,11 @@ class Trip(Base):
     status: Mapped[TripStatus] = mapped_column(Enum(TripStatus), default=TripStatus.PLANNED)
     notes: Mapped[Optional[str]] = mapped_column(String(500))
     
+    # Live Tracking
+    current_lat: Mapped[Optional[float]] = mapped_column(Float)
+    current_lng: Mapped[Optional[float]] = mapped_column(Float)
+    last_tracking_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
+    
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 

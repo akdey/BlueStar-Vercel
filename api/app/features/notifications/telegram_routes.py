@@ -85,16 +85,17 @@ async def telegram_webhook(request: Request):
             
             return {"status": "ok"}
 
-        # Handle Messages
-        if "message" in data:
-            message = data["message"]
+        # Handle Messages and Edited Messages (Live Location updates come as edited_message)
+        message = data.get("message") or data.get("edited_message")
+        
+        if message:
             chat_id = message.get("chat", {}).get("id")
             text = message.get("text", "")
             contact = message.get("contact")
             user_id = message.get("from", {}).get("id")
             
-            # 1. Handle Contact Sharing (User Verification)
-            if contact:
+            # 1. Handle Contact Sharing (User Verification) - Only on fresh messages
+            if contact and "message" in data:
                 phone_number = contact.get("phone_number", "")
                 await TelegramBot.send_message(f"📩 Received contact ({phone_number}). Processing... ⏳", chat_id=str(chat_id))
                 
@@ -109,31 +110,42 @@ async def telegram_webhook(request: Request):
                     logger.info(f"Telegram Linking Attempt: cleaned={raw_phone}, chat_id={chat_id}")
                     
                     try:
+                        # 1. Try to link Driver first
+                        from app.features.fleet.fleet_repository import FleetRepository
+                        
+                        # Match exact or with country code
+                        driver = await FleetRepository.get_driver_by_phone(raw_phone)
+                        if not driver:
+                            driver = await FleetRepository.get_driver_by_phone("91" + raw_phone)
+                            
+                        if driver:
+                            linked = await FleetRepository.update_driver_telegram_id(driver.id, str(chat_id))
+                            if linked:
+                                await TelegramBot.send_message(
+                                    f"🚛 <b>Driver Connected!</b>\n\n"
+                                    f"Hello <b>{driver.name}</b>,\n"
+                                    "You are now linked as a Driver. You will receive trip updates here.", 
+                                    chat_id=str(chat_id),
+                                    parse_mode="HTML"
+                                )
+                                # Also try to link User account if exists, for completeness
+                                await UserRepository.link_telegram_user(raw_phone, str(chat_id))
+                                return {"status": "ok"}
+                        
+                        # 2. Fallback to User Link (Admin/Manager)
                         linked = await UserRepository.link_telegram_user(raw_phone, str(chat_id))
-                        
                         if linked:
-                            success_msg = (
+                             await TelegramBot.send_message(
                                 "You are now connected with BlueStar Trading & Transport!\n\n"
-                                "✅ *Account Linked Successfully*\n"
-                                "• Admin notifications: ACTIVE\n"
-                                "• Trade Voucher approval: ENABLED\n\n"
-                                "Thank you for connecting with us!"
+                                "✅ *Account Linked Successfully*", 
+                                chat_id=str(chat_id)
                             )
-                            await TelegramBot.send_message(success_msg, chat_id=str(chat_id))
-                            return {"status": "ok"}
-                        
-                        # Try with country code if not found
-                        alt_phone = "91" + raw_phone
-                        linked = await UserRepository.link_telegram_user(alt_phone, str(chat_id))
-                        if linked:
-                            await TelegramBot.send_message("You are now connected with BlueStar Trading & Transport!\n\n✅ *Account Linked Successfully*", chat_id=str(chat_id))
-                            return {"status": "ok"}
+                             return {"status": "ok"}
 
                         # Failed match
                         await TelegramBot.send_message(
                             f"❌ *Match Not Found*\n\n"
-                            f"We couldn't find a user with phone number: `{raw_phone}`\n\n"
-                            "Please check your profile on the website.", 
+                            f"We couldn't find a Driver or User with phone number: `{raw_phone}`", 
                             chat_id=str(chat_id)
                         )
                     except Exception as e:
@@ -141,8 +153,63 @@ async def telegram_webhook(request: Request):
                         await TelegramBot.send_message(f"⚠️ *System Error*\nFailed to talk to database: {str(e)[:100]}", chat_id=str(chat_id))
                 
                 return {"status": "ok"}
+            
+            # 2. Handle Location Updates
+            location = message.get("location")
+            if location:
+                # Enforce Live Location
+                # 'live_period' is a field in Location object if it is a live location
+                live_period = location.get("live_period")
+                
+                # If it's a static location sharing (no live_period), we ask the user to switch.
+                # However, edited_messages (live updates) also contain the location.
+                # Let's check if it's a fresh message without live_period.
+                
+                if not live_period:
+                     await TelegramBot.send_message(
+                        "⚠️ <b>Live Location Required</b>\n\n"
+                        "We need your <b>Live Location</b> to track this trip, not a static point.\n\n"
+                        "Please tap 📎 -> <b>Location</b> -> <b>Share My Live Location</b>.",
+                        chat_id=str(chat_id),
+                        parse_mode="HTML"
+                    )
+                     return {"status": "ok"}
 
-            # 2. Handle Commands
+                lat = location.get("latitude")
+                lng = location.get("longitude")
+                
+                # Get Driver Directly by Chat ID
+                from app.features.fleet.fleet_repository import FleetRepository
+                driver = await FleetRepository.get_driver_by_telegram_id(str(chat_id))
+                
+                if not driver:
+                    logger.warning(f"Location received from chat_id {chat_id}, but no linked Driver found.")
+                    # Optional: Tell the user they are not a registered driver?
+                    return {"status": "ok"}
+
+                # Find Active Trip
+                from app.features.trips.trip_repository import TripRepository
+                trip = await TripRepository.get_active_trip_by_driver(driver.id)
+                
+                if not trip:
+                    logger.warning(f"Driver {driver.name} sent location, but has no IN_TRANSIT trip.")
+                    # Optional: Tell driver no trip is active?
+                    return {"status": "ok"}
+
+                # Update Location
+                try:
+                    await TripRepository.update_location(trip.id, lat, lng)
+                    logger.info(f"Updated live location for trip {trip.trip_number} (Driver: {driver.name})")
+                    
+                    # Broadcast to frontend via SSE
+                    from app.features.trips.trip_broadcaster import trip_broadcaster
+                    await trip_broadcaster.broadcast(trip.id, lat, lng)
+                except Exception as e:
+                    logger.error(f"Failed to update location in DB: {e}")
+                            
+                return {"status": "ok"}
+
+            # 3. Handle Commands
             if text.startswith("/start"):
                 welcome_text = (
                     "👋 <b>Welcome to BlueStar Bot!</b>\n\n"

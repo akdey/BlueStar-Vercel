@@ -253,3 +253,14 @@ class UserRepository:
             except Exception as e:
                 logger.error(f"Error fetching user by telegram chat ID: {str(e)}")
                 return None
+
+    @staticmethod
+    async def get_by_phone(phone: str) -> Optional[User]:
+        """Get user by their phone number."""
+        async with SessionLocal() as db:
+            try:
+                result = await db.execute(select(User).where(User.phone_number == phone))
+                return result.scalar_one_or_none()
+            except Exception as e:
+                logger.error(f"Error fetching user by phone: {str(e)}")
+                return None

@@ -106,3 +106,30 @@ class TripRepository:
         async with SessionLocal() as db:
             result = await db.execute(select(TripExpense).where(TripExpense.trip_id == trip_id))
             return result.scalars().all()
+
+    @staticmethod
+    async def update_location(trip_id: int, lat: float, lng: float) -> Optional[Trip]:
+        async with SessionLocal() as db:
+            result = await db.execute(select(Trip).where(Trip.id == trip_id))
+            db_trip = result.scalar_one_or_none()
+            if not db_trip:
+                return None
+            
+            db_trip.current_lat = lat
+            db_trip.current_lng = lng
+            db_trip.last_tracking_at = func.now()
+            
+            await db.commit()
+            await db.refresh(db_trip)
+            return db_trip
+
+    @staticmethod
+    async def get_active_trip_by_driver(driver_id: int) -> Optional[Trip]:
+        """Get the current in-transit trip for a driver."""
+        async with SessionLocal() as db:
+            result = await db.execute(
+                select(Trip)
+                .where(Trip.driver_id == driver_id, Trip.status == TripStatus.IN_TRANSIT)
+                .order_by(Trip.updated_at.desc())
+            )
+            return result.scalar_one_or_none()

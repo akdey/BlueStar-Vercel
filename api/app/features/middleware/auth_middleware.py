@@ -21,6 +21,10 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if path.startswith("/api/telegram"):
             return await call_next(request)
             
+        # Bypass auth for Live Tracking Stream (SSE)
+        if "tracking-stream" in path:
+            return await call_next(request)
+            
         # Check for other public routes
         is_public = False
         for route in settings.PUBLIC_ROUTES:

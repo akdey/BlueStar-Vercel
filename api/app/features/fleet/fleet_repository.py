@@ -53,3 +53,36 @@ class FleetRepository:
         async with SessionLocal() as db:
             result = await db.execute(select(Driver).offset(skip).limit(limit))
             return result.scalars().all()
+
+    @staticmethod
+    async def get_driver_by_id(driver_id: int) -> Optional[Driver]:
+        async with SessionLocal() as db:
+            result = await db.execute(select(Driver).where(Driver.id == driver_id))
+            return result.scalar_one_or_none()
+
+    @staticmethod
+    async def get_driver_by_phone(phone: str) -> Optional[Driver]:
+        async with SessionLocal() as db:
+            result = await db.execute(select(Driver).where(Driver.phone == phone))
+            return result.scalar_one_or_none()
+
+    @staticmethod
+    async def get_driver_by_telegram_id(chat_id: str) -> Optional[Driver]:
+        async with SessionLocal() as db:
+            result = await db.execute(select(Driver).where(Driver.telegram_chat_id == chat_id))
+            return result.scalar_one_or_none()
+            
+    @staticmethod
+    async def update_driver_telegram_id(driver_id: int, chat_id: str) -> bool:
+        async with SessionLocal() as db:
+            try:
+                result = await db.execute(select(Driver).where(Driver.id == driver_id))
+                driver = result.scalar_one_or_none()
+                if driver:
+                    driver.telegram_chat_id = chat_id
+                    await db.commit()
+                    return True
+                return False
+            except Exception as e:
+                logger.error(f"Error updating driver telegram ID: {e}")
+                return False

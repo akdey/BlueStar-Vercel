@@ -57,4 +57,7 @@ class Driver(Base):
     status: Mapped[DriverStatus] = mapped_column(Enum(DriverStatus), default=DriverStatus.ACTIVE)
     notes: Mapped[Optional[str]] = mapped_column(String(500))
     
+    # Telegram Integration for Drivers who may not have a User account
+    telegram_chat_id: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
