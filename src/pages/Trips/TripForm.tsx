@@ -14,7 +14,8 @@ import {
     MapPin,
     DollarSign,
     ArrowRight,
-    Save
+    Save,
+    Gauge
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import {
@@ -42,6 +43,24 @@ const tripSchema = yup.object({
     supplier_party_id: yup.number().transform((val) => (isNaN(val) ? null : val)).nullable().optional(),
     customer_party_id: yup.number().transform((val) => (isNaN(val) ? null : val)).nullable().optional(),
     start_km: yup.number().transform((val) => (isNaN(val) ? 0 : val)).optional(),
+
+    // NEW FIELDS
+    end_km: yup.number()
+        .transform((val) => (isNaN(val) ? null : val))
+        .nullable()
+        .when('status', {
+            is: 'completed',
+            then: (schema) => schema.required('Closing Meter Reading is required for completion'),
+            otherwise: (schema) => schema.optional()
+        }),
+    end_date: yup.string()
+        .nullable()
+        .when('status', {
+            is: 'completed',
+            then: (schema) => schema.required('Terminated Date is required for completion'),
+            otherwise: (schema) => schema.optional()
+        }),
+
     freight_income: yup.number().transform((val) => (isNaN(val) ? 0 : val)).default(0),
     market_truck_cost: yup.number().transform((val) => (isNaN(val) ? 0 : val)).default(0),
     driver_allowance: yup.number().transform((val) => (isNaN(val) ? 0 : val)).default(0),
@@ -62,6 +81,8 @@ const TripForm: React.FC<TripFormProps> = ({ onSuccess, trip }) => {
         supplier_party_id: trip.supplier_party_id,
         customer_party_id: trip.customer_party_id,
         start_km: trip.start_km,
+        end_km: trip.end_km,
+        end_date: trip.end_date ? new Date(trip.end_date).toISOString().slice(0, 16) : null,
         freight_income: trip.freight_income,
         market_truck_cost: trip.market_truck_cost,
         driver_allowance: trip.driver_allowance,
@@ -74,18 +95,21 @@ const TripForm: React.FC<TripFormProps> = ({ onSuccess, trip }) => {
         driver_allowance: 0
     };
 
-    const { register, handleSubmit, formState: { errors }, reset } = useForm<TripFormData>({
+    const { register, handleSubmit, formState: { errors }, reset, watch } = useForm<TripFormData>({
         resolver: yupResolver(tripSchema) as any,
         defaultValues: defaultValues as any
     });
 
-    // Reset form when trip prop changes (e.g., opening edit mode for different trip)
+    const currentStatus = watch('status');
+
+    // Reset form when trip prop changes
     useEffect(() => {
         if (trip) {
             reset({
                 ...trip,
                 start_date: trip.start_date ? new Date(trip.start_date).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16),
-                supplier_party_id: trip.supplier_party_id || null, // handle nulls for selects
+                end_date: trip.end_date ? new Date(trip.end_date).toISOString().slice(0, 16) : null,
+                supplier_party_id: trip.supplier_party_id || null,
                 customer_party_id: trip.customer_party_id || null
             });
         }
@@ -99,12 +123,6 @@ const TripForm: React.FC<TripFormProps> = ({ onSuccess, trip }) => {
     const { data: drivers } = useGetDriversQuery({ status: 'active' });
     const { data: suppliers } = useGetPartiesQuery({ type: 'supplier' });
     const { data: customers } = useGetPartiesQuery({ type: 'customer' });
-
-    // For update mode, we might want to include the current vehicle/driver in the options even if not 'available'/'active' 
-    // to avoid validation errors if they are already assigned to this trip.
-    // However, the simplistic approach is to just use the lists. 
-    // If the current vehicle is not in the list (because it's busy with THIS trip), the Select might show empty or ID.
-    // Ideally we merge the current trip's vehicle/driver into the options.
 
     const vehicleOptions = vehicles?.data?.map((v: any) => ({ value: v.id, label: v.vehicle_number })) || [];
     if (trip && trip.vehicle && !vehicleOptions.find((v: any) => v.value === trip.vehicle_id)) {
@@ -255,7 +273,7 @@ const TripForm: React.FC<TripFormProps> = ({ onSuccess, trip }) => {
                             placeholder="0.00"
                         />
                     </div>
-                    <div className="pt-2 border-t border-gray-100 dark:border-slate-800">
+                    <div className="pt-2 border-t border-gray-100 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <Input
                             label="Opening KM Meter Reading"
                             type="number"
@@ -263,7 +281,33 @@ const TripForm: React.FC<TripFormProps> = ({ onSuccess, trip }) => {
                             error={errors.start_km?.message}
                             placeholder="Current odometer reading"
                         />
+                        {/* CONDITIONAL END KM */}
+                        {currentStatus === 'completed' && (
+                            <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                                <Input
+                                    label="Closing KM Meter Reading"
+                                    type="number"
+                                    registration={register('end_km')}
+                                    error={errors.end_km?.message}
+                                    placeholder="Final odometer reading"
+                                    required
+                                />
+                            </div>
+                        )}
                     </div>
+                    {/* CONDITIONAL END DATE */}
+                    {currentStatus === 'completed' && (
+                        <div className="animate-in fade-in slide-in-from-top-2 duration-300 pt-2 border-t border-gray-100 dark:border-slate-800">
+                            <Input
+                                label="Mission Termination (Date/Time)"
+                                type="datetime-local"
+                                registration={register('end_date')}
+                                error={errors.end_date?.message}
+                                required
+                                tooltip="Actual date and time when the trip ended."
+                            />
+                        </div>
+                    )}
                 </div>
             </section>
 

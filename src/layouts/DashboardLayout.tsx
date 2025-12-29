@@ -32,8 +32,9 @@ import {
     MessageSquare,
     CheckCircle2
 } from 'lucide-react';
-import { useChangePasswordMutation, useLazyGetNotificationsQuery, useMarkNotificationReadMutation } from '../features/api/apiSlice';
+import { useChangePasswordMutation, useGetNotificationsQuery, useMarkNotificationReadMutation } from '../features/api/apiSlice';
 import { toast } from 'react-toastify';
+import NotificationPanel from '../components/Shared/NotificationPanel';
 
 const DashboardLayout = () => {
     const user = useAppSelector((state) => state.auth.user);
@@ -42,6 +43,7 @@ const DashboardLayout = () => {
     const navigate = useNavigate();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
     const { theme, toggleTheme } = useTheme();
 
     const logout = () => {
@@ -255,7 +257,8 @@ const DashboardLayout = () => {
 
                         <div className="h-8 w-px bg-theme mx-1 hidden sm:block" />
 
-                        <NotificationDropdown />
+                        {/* Notification Bell */}
+                        <NotificationBell onClick={() => setIsNotificationPanelOpen(true)} />
 
                         <div className="h-8 w-px bg-theme mx-1 hidden sm:block" />
 
@@ -275,6 +278,9 @@ const DashboardLayout = () => {
                     </div>
                 </main>
             </div>
+
+            {/* Notification Panel */}
+            <NotificationPanel isOpen={isNotificationPanelOpen} onClose={() => setIsNotificationPanelOpen(false)} />
         </div>
     );
 };
@@ -476,107 +482,29 @@ const ChangePasswordModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
     );
 };
 
-const NotificationDropdown = () => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [trigger, { data: notificationsData, isLoading }] = useLazyGetNotificationsQuery();
-    const [markRead] = useMarkNotificationReadMutation();
+// Extracted Bell Component for Badge Logic
+const NotificationBell = ({ onClick }: { onClick: () => void }) => {
+    const { data: notificationsData } = useGetNotificationsQuery({ unread_only: false }, {
+        pollingInterval: 30000,
+        refetchOnFocus: true
+    });
 
     // API returns array directly, not wrapped in data property
     const notifications = Array.isArray(notificationsData) ? notificationsData : (notificationsData?.data || []);
     const unreadCount = notifications.filter((n: any) => !n.is_read).length;
 
-    // Fetch notifications on mount (lazy load)
-    useEffect(() => {
-        trigger({ unread_only: true });
-    }, [trigger]);
-
-    const handleMarkAsRead = async (id: number) => {
-        try {
-            await markRead(id).unwrap();
-            // Refetch to update the list
-            trigger({ unread_only: true });
-        } catch (error) {
-            console.error("Failed to mark as read", error);
-        }
-    };
-
     return (
-        <div className="relative">
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-500 dark:text-gray-400 relative transition-colors"
-                aria-label="Notifications"
-            >
-                <Bell size={18} className="sm:w-5 sm:h-5" />
-                {unreadCount > 0 && (
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white dark:border-slate-900 animate-pulse"></span>
-                )}
-            </button>
+        <button
+            onClick={onClick}
+            className="p-2 rounded-full hover:bg-main-hover text-gray-500 dark:text-gray-400 relative transition-colors"
+            title="View Notifications"
+        >
+            <Bell size={18} className="sm:w-5 sm:h-5" />
 
-            <AnimatePresence>
-                {isOpen && (
-                    <>
-                        <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-                        <motion.div
-                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                            className="absolute right-0 mt-3 w-80 bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-gray-100 dark:border-slate-800 z-50 overflow-hidden"
-                        >
-                            <div className="p-6 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
-                                <h3 className="font-black text-gray-900 dark:text-white uppercase tracking-tight">Signals</h3>
-                                <span className={`text-[10px] px-2 py-1 rounded-full font-black ${unreadCount > 0 ? 'bg-red-100 dark:bg-red-900/30 text-red-600' : 'bg-gray-100 dark:bg-gray-800 text-gray-500'}`}>
-                                    {unreadCount} NEW
-                                </span>
-                            </div>
-
-                            {isLoading ? (
-                                <div className="p-8 text-center flex flex-col items-center gap-4">
-                                    <Loader2 size={32} className="animate-spin text-primary" />
-                                    <p className="text-xs text-gray-400">Loading notifications...</p>
-                                </div>
-                            ) : notifications.length === 0 ? (
-                                <div className="p-8 text-center flex flex-col items-center gap-4">
-                                    <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/50 text-gray-300 dark:text-gray-600">
-                                        <Bell size={32} />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-bold text-gray-900 dark:text-gray-100 italic">Clear Communication</p>
-                                        <p className="text-xs text-gray-400 mt-1">No new operational updates at this time.</p>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="max-h-96 overflow-y-auto">
-                                    {notifications.slice(0, 5).map((notification: any) => (
-                                        <div
-                                            key={notification.id}
-                                            className="p-4 border-b border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors group"
-                                        >
-                                            <div className="flex gap-3">
-                                                <div className={`shrink-0 w-2 h-2 rounded-full mt-1.5 ${!notification.is_read ? 'bg-red-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{notification.title}</p>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{notification.message}</p>
-                                                </div>
-                                                {!notification.is_read && (
-                                                    <button
-                                                        onClick={() => handleMarkAsRead(notification.id)}
-                                                        className="opacity-0 group-hover:opacity-100 shrink-0 p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-400 hover:text-primary transition-all"
-                                                        title="Mark as read"
-                                                    >
-                                                        <CheckCircle2 size={14} />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </motion.div>
-                    </>
-                )}
-            </AnimatePresence>
-        </div >
+            {unreadCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white dark:border-slate-900 animate-pulse"></span>
+            )}
+        </button>
     );
 };
 

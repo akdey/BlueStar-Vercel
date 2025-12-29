@@ -17,7 +17,7 @@ class TripService:
     async def create_trip(trip_in: TripCreate) -> TripResponse:
         # Handle Auto-generation of Trip Number
         if not trip_in.trip_number:
-            trip_in.trip_number = await IDGenerator.generate_code("T", Trip)
+            trip_in.trip_number = await IDGenerator.generate_transaction_id("T", Trip)
             
         # Check vehicle availability?
         # Ideally yes. A vehicle cannot be on two trips.

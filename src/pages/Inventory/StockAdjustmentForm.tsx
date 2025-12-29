@@ -7,6 +7,7 @@ import { Loader2, Package, ArrowRight, BarChart2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useGetItemsQuery, useUpdateItemMutation } from '../../features/api/apiSlice';
 import { toast } from 'react-toastify';
+import Button from '../../components/UI/Button';
 
 interface StockAdjustmentFormProps {
     onSuccess: () => void;

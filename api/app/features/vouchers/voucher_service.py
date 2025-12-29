@@ -31,7 +31,7 @@ class VoucherService:
             else:
                 prefix = "CHL" # For Challan
             
-            voucher_in.voucher_number = await IDGenerator.generate_voucher_number(prefix, TradeVoucher)
+            voucher_in.voucher_number = await IDGenerator.generate_transaction_id(prefix, TradeVoucher)
         
         # --- RECALCULATE TOTALS ---
         calculated_total = 0.0

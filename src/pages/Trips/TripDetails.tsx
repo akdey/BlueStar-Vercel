@@ -27,10 +27,9 @@ import { toast } from 'react-toastify';
 interface TripDetailsProps {
     trip: any;
     refetch?: () => void;
-    onEdit?: () => void;
 }
 
-const TripDetails: React.FC<TripDetailsProps> = ({ trip, refetch, onEdit }) => {
+const TripDetails: React.FC<TripDetailsProps> = ({ trip, refetch }) => {
     const [isAddingExpense, setIsAddingExpense] = useState(false);
     const [isEditingStatus, setIsEditingStatus] = useState(false);
     const [expenseForm, setExpenseForm] = useState({
@@ -158,18 +157,7 @@ const TripDetails: React.FC<TripDetailsProps> = ({ trip, refetch, onEdit }) => {
                                 </div>
                             )}
                         </div>
-                        <div className="flex flex-col items-end gap-1">
-                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/50">Logistics Mission ID: {trip.trip_number || `TRP-${trip.id}`}</span>
-                            {onEdit && (
-                                <button
-                                    onClick={onEdit}
-                                    className="flex items-center gap-1.5 text-[10px] bg-white/10 hover:bg-white/20 text-white px-3 py-1 rounded-lg uppercase font-bold tracking-wider transition-all"
-                                >
-                                    <Edit size={12} />
-                                    <span>Edit Mission Data</span>
-                                </button>
-                            )}
-                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/50">Logistics Mission ID: {trip.trip_number || `TRP-${trip.id}`}</span>
                     </div>
 
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-8 mb-8">

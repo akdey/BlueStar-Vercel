@@ -7,9 +7,10 @@ import SlideOver from '../../components/Shared/SlideOver';
 import ItemForm from './ItemForm';
 import ItemDetails from './ItemDetails';
 import StockAdjustmentForm from './StockAdjustmentForm';
+import PricingOverrideForm from './PricingOverrideForm'; // Added
 import Badge from '../../components/Shared/Badge';
 import { motion } from 'framer-motion';
-import { Search, Edit2, Eye, PackageCheck, AlertCircle, PlusCircle } from 'lucide-react';
+import { Search, Edit2, Eye, PackageCheck, AlertCircle, PlusCircle, Tag } from 'lucide-react';
 
 interface InventoryItem {
     id: number;
@@ -26,6 +27,7 @@ const Inventory = () => {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [isAdjustOpen, setIsAdjustOpen] = useState(false);
+    const [isPricingOpen, setIsPricingOpen] = useState(false); // Added
     const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [itemType, setItemType] = useState<string>('');
@@ -36,6 +38,7 @@ const Inventory = () => {
         item_type: itemType || undefined
     });
 
+    // Handlers
     const handleCreate = () => {
         setSelectedItem(null);
         setIsFormOpen(true);
@@ -46,9 +49,19 @@ const Inventory = () => {
         setIsAdjustOpen(true);
     };
 
+    const handlePricingGeneric = () => {
+        setSelectedItem(null);
+        setIsPricingOpen(true);
+    };
+
     const handleAdjustSpecific = (item: InventoryItem) => {
         setSelectedItem(item);
         setIsAdjustOpen(true);
+    };
+
+    const handlePricingSpecific = (item: InventoryItem) => {
+        setSelectedItem(item);
+        setIsPricingOpen(true);
     };
 
     const handleEdit = (item: InventoryItem) => {
@@ -125,6 +138,13 @@ const Inventory = () => {
                         <PackageCheck size={16} />
                     </button>
                     <button
+                        onClick={() => handlePricingSpecific(item)}
+                        className="p-2 text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg transition-all"
+                        title="Set Customer Price Rule"
+                    >
+                        <Tag size={16} />
+                    </button>
+                    <button
                         onClick={() => handleEdit(item)}
                         className="p-2 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
                         title="Edit Record"
@@ -144,8 +164,17 @@ const Inventory = () => {
                     <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
+                        onClick={handlePricingGeneric}
+                        className="group relative inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-card dark:bg-slate-900 border border-theme text-main dark:text-gray-300 text-[10px] font-bold uppercase tracking-[0.2em] rounded-xl shadow-sm hover:bg-main-hover transition-all font-display"
+                    >
+                        <Tag size={16} className="text-emerald-500" />
+                        <span>Pricing Rules</span>
+                    </motion.button>
+                    <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                         onClick={handleAdjustGeneric}
-                        className="group relative inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-card dark:bg-slate-900 border border-theme text-main dark:text-gray-300 text-[10px] font-bold uppercase tracking-[0.2em] rounded-xl shadow-sm hover:bg-main-hover transition-all font-display"
+                        className="group relative inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-card dark:bg-slate-900 border border-theme text-main dark:text-gray-300 text-[10px] font-bold uppercase tracking-[0.2em] rounded-xl shadow-sm hover:bg-main-hover transition-all font-display"
                     >
                         <PackageCheck size={16} className="text-secondary" />
                         <span>Adjust Stock</span>
@@ -219,6 +248,10 @@ const Inventory = () => {
 
             <SlideOver title="Stock Level Adjustment" isOpen={isAdjustOpen} onClose={() => setIsAdjustOpen(false)}>
                 <StockAdjustmentForm initialItem={selectedItem} onSuccess={() => { setIsAdjustOpen(false); refetch(); }} />
+            </SlideOver>
+
+            <SlideOver title="Configure Pricing Override" isOpen={isPricingOpen} onClose={() => setIsPricingOpen(false)}>
+                <PricingOverrideForm initialItem={selectedItem} onSuccess={() => { setIsPricingOpen(false); }} />
             </SlideOver>
 
             <SlideOver title={selectedItem ? "Modify Inventory Record" : "Add New Item"} isOpen={isFormOpen} onClose={() => setIsFormOpen(false)}>

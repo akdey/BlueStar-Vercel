@@ -16,6 +16,7 @@ import {
     Activity,
     PlusCircle,
     Eye,
+    Edit,
     ChevronRight,
     Search
 } from 'lucide-react';
@@ -41,7 +42,13 @@ const Trips = () => {
         setIsDetailsOpen(true);
     };
 
+    const handleEdit = (trip: any) => {
+        setSelectedTrip(trip);
+        setIsFormOpen(true);
+    };
+
     const columns = [
+        // ... previous columns
         {
             header: 'Mission Path',
             id: 'path',
@@ -124,12 +131,22 @@ const Trips = () => {
             header: 'Actions',
             id: 'actions',
             cell: (row: any) => (
-                <button
-                    onClick={() => handleView(row)}
-                    className="p-2 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all"
-                >
-                    <Eye size={18} />
-                </button>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); handleEdit(row); }}
+                        className="p-2 text-gray-400 hover:text-secondary hover:bg-secondary/5 rounded-xl transition-all"
+                        title="Edit Mission Details"
+                    >
+                        <Edit size={18} />
+                    </button>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); handleView(row); }}
+                        className="p-2 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all"
+                        title="View Telemetry"
+                    >
+                        <Eye size={18} />
+                    </button>
+                </div>
             )
         }
     ];

@@ -4,27 +4,34 @@ from sqlalchemy import select, func
 from app.core.database import SessionLocal
 
 class IDGenerator:
-    @staticmethod
-    async def generate_code(prefix: str, entity_class) -> str:
-        """Generates a sequential code like P-001, P-002, etc."""
-        async with SessionLocal() as db:
-            # Count records to get next number
-            query = select(func.count()).select_from(entity_class)
-            result = await db.execute(query)
-            count = result.scalar()
-            
-            # Use count + 1 and pad with zeros
-            return f"{prefix}-{str(count + 1).zfill(3)}"
+
 
     @staticmethod
-    async def generate_voucher_number(prefix: str, entity_class) -> str:
-        """Generates a voucher number like INV-2023-001."""
+    async def generate_transaction_id(prefix: str, entity_class, date_field="created_at") -> str:
+        """
+        Generates a smart ID like T-20240130-001.
+        Reset counts daily using the `date_field` column.
+        """
         from datetime import datetime
-        year = datetime.now().year
+        from sqlalchemy import cast, Date
+        
+        today = datetime.now().date()
+        date_str = today.strftime("%Y%m%d")
         
         async with SessionLocal() as db:
-            query = select(func.count()).select_from(entity_class)
+            # Count records created TODAY
+            # We assume the entity has a field named by `date_field` (default: created_at)
+            column = getattr(entity_class, date_field)
+            
+            query = (
+                select(func.count())
+                .select_from(entity_class)
+                .where(cast(column, Date) == today)
+            )
             result = await db.execute(query)
             count = result.scalar()
             
-            return f"{prefix}-{year}-{str(count + 1).zfill(4)}"
+            # Sequence is count + 1
+            sequence = str(count + 1).zfill(3)
+            
+            return f"{prefix}-{date_str}-{sequence}"
