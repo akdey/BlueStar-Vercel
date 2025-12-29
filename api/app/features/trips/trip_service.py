@@ -22,9 +22,16 @@ class TripService:
         # Check vehicle availability?
         # Ideally yes. A vehicle cannot be on two trips.
         vehicle = await FleetRepository.get_vehicle_by_number(str(trip_in.vehicle_id)) # This searches by number, but input is ID. Need get_by_id in FleetRepo?
-        # Let's skip availability check for MVP to avoid circular deps or adding more methods now.
-        # But we should trust the user or check status later.
-        
+        # Validation: Check if driver is already IN_TRANSIT
+        # Only relevant if we are creating a trip that starts immediately
+        if trip_in.status == TripStatus.IN_TRANSIT:
+            active_trip = await TripRepository.get_active_trip_by_driver(trip_in.driver_id)
+            if active_trip:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST, 
+                    detail=f"Driver is already on an active trip ({active_trip.trip_number}). Please complete it first."
+                )
+
         trip = await TripRepository.create(trip_in)
         
         # Trigger notification if created directly in IN_TRANSIT status
@@ -55,11 +62,30 @@ class TripService:
     
     @staticmethod
     async def update_trip(trip_id: int, trip_in: TripUpdate) -> TripResponse:
-        # Check if status is changing to IN_TRANSIT
+        existing_trip = await TripRepository.get_by_id(trip_id)
+        if not existing_trip:
+            raise HTTPException(status_code=404, detail="Trip not found")
+
         should_notify = False
-        if trip_in.status == TripStatus.IN_TRANSIT:
-            existing_trip = await TripRepository.get_by_id(trip_id)
-            if existing_trip and existing_trip.status != TripStatus.IN_TRANSIT:
+        
+        # Check if status is changing to IN_TRANSIT
+        # OR if we are assigning a new driver to an already IN_TRANSIT trip (edge case)
+        target_status = trip_in.status or existing_trip.status
+        
+        if target_status == TripStatus.IN_TRANSIT:
+            # Determine effective driver ID (newly assigned or existing)
+            target_driver_id = trip_in.driver_id or existing_trip.driver_id
+            
+            # Validation: Is this driver busy on ANOTHER active trip?
+            active_trip = await TripRepository.get_active_trip_by_driver(target_driver_id)
+            if active_trip and active_trip.id != trip_id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Driver is already on an active trip ({active_trip.trip_number}). Cannot start another."
+                )
+            
+            # Check if this is a NEW start (transition from PLANNED -> IN_TRANSIT)
+            if trip_in.status == TripStatus.IN_TRANSIT and existing_trip.status != TripStatus.IN_TRANSIT:
                 should_notify = True
 
         trip = await TripRepository.update(trip_id, trip_in)

@@ -187,7 +187,15 @@ const Trips = () => {
                 onClose={() => setIsDetailsOpen(false)}
                 title="Mission Breakdown & Telemetry"
             >
-                <TripDetails trip={selectedTrip} refetch={refetch} />
+                <TripDetails
+                    trip={selectedTrip}
+                    refetch={refetch}
+                    onEdit={() => {
+                        setIsDetailsOpen(false);
+                        setIsFormOpen(true);
+                        // selectedTrip is already set
+                    }}
+                />
             </SlideOver>
 
             <SlideOver
@@ -196,7 +204,10 @@ const Trips = () => {
                 title="Mission Initiation Entry"
             >
                 <div className="max-w-2xl mx-auto">
-                    <TripForm onSuccess={() => { setIsFormOpen(false); refetch(); }} />
+                    <TripForm
+                        onSuccess={() => { setIsFormOpen(false); refetch(); }}
+                        trip={selectedTrip}
+                    />
                 </div>
             </SlideOver>
         </div>

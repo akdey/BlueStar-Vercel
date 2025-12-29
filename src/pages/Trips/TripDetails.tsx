@@ -20,23 +20,27 @@ import LiveTripMonitoring from '../../components/Trips/LiveTripMonitoring';
 import Badge from '../../components/Shared/Badge';
 import Button from '../../components/UI/Button';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAddTripExpenseMutation } from '../../features/api/apiSlice';
+import { useAddTripExpenseMutation, useUpdateTripMutation } from '../../features/api/apiSlice';
 import { toast } from 'react-toastify';
 
 interface TripDetailsProps {
     trip: any;
     refetch?: () => void;
+    onEdit?: () => void;
 }
 
-const TripDetails: React.FC<TripDetailsProps> = ({ trip, refetch }) => {
+const TripDetails: React.FC<TripDetailsProps> = ({ trip, refetch, onEdit }) => {
     const [isAddingExpense, setIsAddingExpense] = useState(false);
+    const [isEditingStatus, setIsEditingStatus] = useState(false);
     const [expenseForm, setExpenseForm] = useState({
         expense_type: 'fuel',
         amount: '',
         description: '',
         date: new Date().toISOString().slice(0, 16)
     });
+
     const [addExpense, { isLoading: isSubmitting }] = useAddTripExpenseMutation();
+    const [updateTrip, { isLoading: isUpdating }] = useUpdateTripMutation();
 
     if (!trip) return null;
 
@@ -63,6 +67,21 @@ const TripDetails: React.FC<TripDetailsProps> = ({ trip, refetch }) => {
             bg: 'bg-emerald-50/50'
         },
     ];
+
+    const handleUpdateStatus = async (newStatus: string) => {
+        try {
+            await updateTrip({
+                tripId: trip.id,
+                tripData: { status: newStatus }
+            }).unwrap();
+            toast.success(`Mission status updated to ${newStatus.replace('_', ' ').toUpperCase()}`);
+            setIsEditingStatus(false);
+            if (refetch) refetch();
+        } catch (error: any) {
+            toast.error(error.data?.detail || 'Failed to update mission status');
+            // Keep the edit mode open so user can try again or cancel
+        }
+    };
 
     const handleAddExpense = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -101,10 +120,54 @@ const TripDetails: React.FC<TripDetailsProps> = ({ trip, refetch }) => {
                 </div>
                 <div className="relative z-10">
                     <div className="flex justify-between items-start mb-6">
-                        <Badge variant={trip.status === 'completed' ? 'success' : 'primary'}>
-                            {trip.status?.toUpperCase()?.replace('_', ' ')}
-                        </Badge>
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/50">Logistics Mission ID: {trip.trip_number || `TRP-${trip.id}`}</span>
+                        <div className="flex items-center gap-3">
+                            {isEditingStatus ? (
+                                <div className="flex items-center gap-2 bg-white/10 p-1 rounded-xl backdrop-blur-sm">
+                                    <select
+                                        autoFocus
+                                        value={trip.status}
+                                        onChange={(e) => handleUpdateStatus(e.target.value)}
+                                        disabled={isUpdating}
+                                        className="bg-transparent text-white text-xs font-bold uppercase outline-none py-1 px-2 [&>option]:text-black cursor-pointer"
+                                    >
+                                        <option value="planned">Planned</option>
+                                        <option value="in_transit">In Transit</option>
+                                        <option value="completed">Completed</option>
+                                        <option value="cancelled">Cancelled</option>
+                                    </select>
+                                    {isUpdating && <Loader2 size={14} className="animate-spin text-white/70" />}
+                                    <button
+                                        onClick={() => setIsEditingStatus(false)}
+                                        className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+                                    >
+                                        <span className="sr-only">Cancel</span>
+                                        <div className="w-3 h-3 text-white/70">✕</div>
+                                    </button>
+                                </div>
+                            ) : (
+                                <div
+                                    onClick={() => setIsEditingStatus(true)}
+                                    className="cursor-pointer hover:scale-105 transition-transform group relative"
+                                    title="Click to update status"
+                                >
+                                    <Badge variant={trip.status === 'completed' ? 'success' : 'primary'}>
+                                        {trip.status?.toUpperCase()?.replace('_', ' ')}
+                                    </Badge>
+                                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/50">Logistics Mission ID: {trip.trip_number || `TRP-${trip.id}`}</span>
+                            {onEdit && (
+                                <button
+                                    onClick={onEdit}
+                                    className="text-[10px] bg-white/10 hover:bg-white/20 text-white px-3 py-1 rounded-lg uppercase font-bold tracking-wider transition-all"
+                                >
+                                    Edit Mission Data
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-8 mb-8">

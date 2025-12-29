@@ -132,4 +132,4 @@ class TripRepository:
                 .where(Trip.driver_id == driver_id, Trip.status == TripStatus.IN_TRANSIT)
                 .order_by(Trip.updated_at.desc())
             )
-            return result.scalar_one_or_none()
+            return result.scalars().first()

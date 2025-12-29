@@ -13,11 +13,13 @@ import {
     Activity,
     MapPin,
     DollarSign,
-    ArrowRight
+    ArrowRight,
+    Save
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import {
     useCreateTripMutation,
+    useUpdateTripMutation,
     useGetVehiclesQuery,
     useGetDriversQuery,
     useGetPartiesQuery
@@ -26,6 +28,7 @@ import { toast } from 'react-toastify';
 
 interface TripFormProps {
     onSuccess: () => void;
+    trip?: any;
 }
 
 const tripSchema = yup.object({
@@ -47,31 +50,86 @@ const tripSchema = yup.object({
 
 type TripFormData = yup.InferType<typeof tripSchema>;
 
-const TripForm: React.FC<TripFormProps> = ({ onSuccess }) => {
-    const { register, handleSubmit, formState: { errors } } = useForm<TripFormData>({
+const TripForm: React.FC<TripFormProps> = ({ onSuccess, trip }) => {
+    const defaultValues = trip ? {
+        top_number: trip.trip_number,
+        vehicle_id: trip.vehicle_id,
+        driver_id: trip.driver_id,
+        source_location: trip.source_location,
+        destination_location: trip.destination_location,
+        start_date: trip.start_date ? new Date(trip.start_date).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16),
+        status: trip.status,
+        supplier_party_id: trip.supplier_party_id,
+        customer_party_id: trip.customer_party_id,
+        start_km: trip.start_km,
+        freight_income: trip.freight_income,
+        market_truck_cost: trip.market_truck_cost,
+        driver_allowance: trip.driver_allowance,
+        notes: trip.notes || ''
+    } : {
+        status: 'planned',
+        start_date: new Date().toISOString().slice(0, 16),
+        freight_income: 0,
+        market_truck_cost: 0,
+        driver_allowance: 0
+    };
+
+    const { register, handleSubmit, formState: { errors }, reset } = useForm<TripFormData>({
         resolver: yupResolver(tripSchema) as any,
-        defaultValues: {
-            status: 'planned',
-            start_date: new Date().toISOString().slice(0, 16),
-            freight_income: 0,
-            market_truck_cost: 0,
-            driver_allowance: 0
-        }
+        defaultValues: defaultValues as any
     });
 
-    const [createTrip, { isLoading: isSubmitting }] = useCreateTripMutation();
+    // Reset form when trip prop changes (e.g., opening edit mode for different trip)
+    useEffect(() => {
+        if (trip) {
+            reset({
+                ...trip,
+                start_date: trip.start_date ? new Date(trip.start_date).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16),
+                supplier_party_id: trip.supplier_party_id || null, // handle nulls for selects
+                customer_party_id: trip.customer_party_id || null
+            });
+        }
+    }, [trip, reset]);
+
+    const [createTrip, { isLoading: isCreating }] = useCreateTripMutation();
+    const [updateTrip, { isLoading: isUpdating }] = useUpdateTripMutation();
+
+    // Fetch dependencies
     const { data: vehicles } = useGetVehiclesQuery({ status: 'available' });
     const { data: drivers } = useGetDriversQuery({ status: 'active' });
     const { data: suppliers } = useGetPartiesQuery({ type: 'supplier' });
     const { data: customers } = useGetPartiesQuery({ type: 'customer' });
 
+    // For update mode, we might want to include the current vehicle/driver in the options even if not 'available'/'active' 
+    // to avoid validation errors if they are already assigned to this trip.
+    // However, the simplistic approach is to just use the lists. 
+    // If the current vehicle is not in the list (because it's busy with THIS trip), the Select might show empty or ID.
+    // Ideally we merge the current trip's vehicle/driver into the options.
+
+    const vehicleOptions = vehicles?.data?.map((v: any) => ({ value: v.id, label: v.vehicle_number })) || [];
+    if (trip && trip.vehicle && !vehicleOptions.find((v: any) => v.value === trip.vehicle_id)) {
+        vehicleOptions.push({ value: trip.vehicle_id, label: trip.vehicle?.vehicle_number || `Unit ${trip.vehicle_id}` });
+    }
+
+    const driverOptions = drivers?.data?.map((d: any) => ({ value: d.id, label: d.name })) || [];
+    if (trip && trip.driver && !driverOptions.find((d: any) => d.value === trip.driver_id)) {
+        driverOptions.push({ value: trip.driver_id, label: trip.driver?.name || `Driver ${trip.driver_id}` });
+    }
+
+    const isSubmitting = isCreating || isUpdating;
+
     const onSubmit = async (data: TripFormData) => {
         try {
-            await createTrip(data).unwrap();
-            toast.success('New trip initialized in registry');
+            if (trip) {
+                await updateTrip({ tripId: trip.id, tripData: data }).unwrap();
+                toast.success('Logistics mission updated successfully');
+            } else {
+                await createTrip(data).unwrap();
+                toast.success('New trip initialized in registry');
+            }
             onSuccess();
         } catch (error: any) {
-            toast.error(error.data?.detail || 'Failed to initialize trip');
+            toast.error(error.data?.detail || `Failed to ${trip ? 'update' : 'initialize'} trip`);
         }
     };
 
@@ -97,7 +155,7 @@ const TripForm: React.FC<TripFormProps> = ({ onSuccess }) => {
                             tooltip="Optional: Manual Trip number / Ref. Backend will auto-generate if left blank."
                         />
                         <Input
-                            label="Initial Launch (Date/Time)"
+                            label={trip ? "Update Launch Time" : "Initial Launch (Date/Time)"}
                             type="datetime-local"
                             registration={register('start_date')}
                             error={errors.start_date?.message}
@@ -111,7 +169,7 @@ const TripForm: React.FC<TripFormProps> = ({ onSuccess }) => {
                             registration={register('vehicle_id' as any)}
                             error={errors.vehicle_id?.message}
                             required
-                            options={vehicles?.data?.map((v: any) => ({ value: v.id, label: v.vehicle_number })) || []}
+                            options={vehicleOptions}
                             tooltip="Select an available vehicle from the fleet for this trip."
                         />
                         <Select
@@ -119,7 +177,7 @@ const TripForm: React.FC<TripFormProps> = ({ onSuccess }) => {
                             registration={register('driver_id' as any)}
                             error={errors.driver_id?.message}
                             required
-                            options={drivers?.data?.map((d: any) => ({ value: d.id, label: d.name })) || []}
+                            options={driverOptions}
                             tooltip="Assign an active driver to this trip."
                         />
                     </div>
@@ -246,8 +304,8 @@ const TripForm: React.FC<TripFormProps> = ({ onSuccess }) => {
                         <Loader2 className="animate-spin h-6 w-6" />
                     ) : (
                         <div className="flex items-center gap-3">
-                            <span>Initialize Logistics Mission</span>
-                            <ArrowRight size={18} />
+                            {trip ? <Save size={18} /> : <span>Initialize Logistics Mission</span>}
+                            {trip ? <span>Update Mission Data</span> : <ArrowRight size={18} />}
                         </div>
                     )}
                 </Button>
