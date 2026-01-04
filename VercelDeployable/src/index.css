@@ -1,0 +1,198 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-color: #0F172A;
+  /* Rich Enterprise Navy */
+  --secondary-color: #2563EB;
+  /* Premium Power Blue */
+  --accent-color: #3B82F6;
+  --primary: 15, 23, 42;
+  --secondary: 37, 99, 235;
+  --accent: 59, 130, 246;
+  --bg-main: #F1F5F9;
+  /* Softer base to define surfaces */
+  --bg-main-hover: #E2E8F0;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #F8FAFC;
+  --text-main: #1E293B;
+  /* Slate 800 - Clean & Readable */
+  --text-muted: #64748B;
+  --border-color: #E2E8F0;
+  /* Sharp, clean borders */
+  --logo-primary: #0F172A;
+  /* Solid Navy Brand */
+  --logo-secondary: #0284C7;
+  /* Sky 600 for the 'Star' */
+}
+
+.dark {
+  --primary-color: #38BDF8;
+  --secondary-color: #818CF8;
+  --accent-color: #F59E0B;
+  --primary: 56, 189, 248;
+  --secondary: 129, 140, 248;
+  --accent: 245, 158, 11;
+  --bg-main: #020617;
+  --bg-main-hover: #0F172A;
+  --bg-card: #0F172A;
+  --bg-card-hover: #1E293B;
+  --text-main: #F1F5F9;
+  --text-muted: #94A3B8;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --logo-primary: #FFFFFF;
+  --logo-secondary: #38BDF8;
+}
+
+@layer base {
+  body {
+    @apply font-sans transition-colors duration-700;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    margin: 0;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading;
+    color: var(--text-main);
+  }
+}
+
+/* Custom utility for glassmorphism */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glass {
+  background: rgba(var(--bg-card), 0.6);
+  border: 1px solid var(--border-color);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 1);
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
+}
+
+.dark .glass-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+.scroll-progress {
+  @apply fixed top-0 left-0 right-0 h-1 z-50 origin-left;
+  background-color: var(--primary);
+}
+
+@layer utilities {
+  .text-glow {
+    text-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+  }
+
+  .bg-main {
+    background-color: var(--bg-main);
+  }
+
+  .bg-main-hover {
+    background-color: var(--bg-main-hover);
+  }
+
+  .bg-card {
+    background-color: var(--bg-card);
+  }
+
+  .bg-card-hover {
+    background-color: var(--bg-card-hover);
+  }
+
+  .text-main {
+    color: var(--text-main);
+  }
+
+  .text-muted {
+    color: var(--text-muted);
+  }
+
+  .border-theme {
+    border-color: var(--border-color);
+  }
+
+  .bg-theme {
+    background-color: var(--border-color);
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Vibrant Gradients */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%);
+}
+
+.dark .bg-gradient-primary {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+}
+
+.bg-gradient-hover {
+  filter: brightness(1.15);
+}
+
+.bg-gradient-accent {
+  background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
+}
+
+/* Print Styles */
+.mask-fade-right {
+  mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .printable-content,
+  .printable-content * {
+    visibility: visible;
+  }
+
+  .printable-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    border: none;
+  }
+
+  /* Hide slideover/modals/etc when printing */
+  .no-print {
+    display: none !important;
+  }
+}

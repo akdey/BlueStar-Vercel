@@ -1,0 +1,47 @@
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.orm import DeclarativeBase
+from app.core.config import settings
+
+from sqlalchemy.pool import NullPool
+
+engine = create_async_engine(
+    settings.DATABASE_URL,
+    poolclass=NullPool,
+    connect_args={
+        "prepared_statement_cache_size": 0,
+        "statement_cache_size": 0,
+    }
+)
+
+SessionLocal = async_sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
+
+class Base(DeclarativeBase):
+    pass
+
+async def init_db():
+    async with engine.begin() as conn:
+        # Import all entities here so they are registered with Base.metadata
+        from app.features.users.user_entity import User
+        from app.features.parties.party_entity import Party
+        from app.features.transactions.transaction_entity import Transaction
+        from app.features.inventory.inventory_entity import Item, CustomerItemRate
+        from app.features.vouchers.voucher_entity import TradeVoucher, VoucherItem
+        from app.features.fleet.fleet_entity import Vehicle, Driver
+        from app.features.trips.trip_entity import Trip, TripExpense
+        from app.features.notifications.notification_entity import Notification
+        await conn.run_sync(Base.metadata.create_all)
+
+async def get_db():
+    async with SessionLocal() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
